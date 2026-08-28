@@ -21,7 +21,9 @@
 - SQL versionado y con orden de ejecución documentado
 
 ## IA / Agentes
-- Claude vía `@anthropic-ai/sdk` para features conversacionales o de evaluación
+- **Python** para todo lo que llame a Claude: `claude_agent_sdk` para agentes con herramientas, `anthropic` para llamadas sueltas
+- Decidido el 2026-08-28 (ver `DECISIONES.md` [D1]). Antes esta línea decía Node con `@anthropic-ai/sdk`, lo que chocaba con `agentes-sdk/` del laboratorio, que es Python: cada prompt terminaba escrito dos veces —prototipo y producción— y las dos versiones divergían
+- Consecuencia asumida: el backend de aplicación sigue siendo Node/Express, así que los agentes son un **servicio Python aparte** al que Express llama. Son dos runtimes, no uno
 - Un agente por tarea — no multiagente salvo que se justifique explícitamente
 - Si la tarea del agente implica cálculo o veredicto: el agente solo emite juicio con evidencia — el cálculo determinista vive siempre en scripts, nunca en el agente ni en el prompt
 

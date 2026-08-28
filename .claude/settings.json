@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.development)",
+      "Read(./.env.production)",
+      "Read(./**/.env)",
+      "Read(./**/.env.local)",
+      "Read(./**/.env.development)",
+      "Read(./**/.env.production)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.p12)",
+      "Read(./**/*.key)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__claude_ai_Supabase__execute_sql|mcp__claude_ai_Supabase__apply_migration",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "python \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/guardrail-sql.py\"",
+            "timeout": 10,
+            "statusMessage": "Revisando el SQL contra el guardrail..."
+          }
+        ]
+      }
+    ]
+  }
+}

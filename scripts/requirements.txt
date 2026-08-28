@@ -1,0 +1,6 @@
+# Dependencias de los scripts determinísticos (sin llamadas a Claude).
+# Instalar con: pip install -r scripts/requirements.txt
+
+# Driver de Postgres para verificar_migracion.py. El script funciona sin esto
+# (hace los chequeos locales), pero no puede consultar el estado real de RLS.
+psycopg[binary]>=3.1

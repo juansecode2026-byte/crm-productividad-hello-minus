@@ -35,8 +35,9 @@ decidieron antes de escribir la primera política, como recomendaba:
 - **Indicadores personales (punto A):** ambos integrantes ven los de ambos.
 - **Detalle de Tarea Semanal (punto B):** ambos ven el del otro.
 
-El equipo son dos personas y eligieron transparencia total. Por eso la
-restricción no está en la lectura, sino en dos lugares distintos:
+El equipo son dos personas y eligieron transparencia total: **ambos leen todo**,
+incluido lo comercial y el log de auditoría. Por eso la restricción no está en
+la lectura, sino en dos lugares distintos:
 
 1. **Escritura** — cada quien escribe solo lo suyo. Ver que otro registró horas
    no habilita a editarlas.
@@ -48,9 +49,15 @@ restricción no está en la lectura, sino en dos lugares distintos:
    entra por `service_role`, que salta RLS por diseño.
 
 Lo **comercial** (`clientes`, `productos`, `leads`, `ventas`, `oportunidades`)
-quedó restringido a admin, incluso para leer. Son datos de terceros, no del
-equipo, y la decisión de transparencia se tomó sobre lo segundo. Abrirlo es un
-cambio de una línea por tabla, pero conviene decidirlo aparte.
+lo ven los dos, pero solo el admin lo modifica. La documentación de la Fase 01
+lo proponía como solo-admin también para leer; el equipo decidió lo contrario a
+propósito. Uno de los dos integrantes tiene rol `admin` y es el único que puede
+tocar montos, clientes y pipeline: **la asimetría entre ambos está en la
+escritura, no en lo que alcanzan a ver**.
+
+`auditoria_log` sigue el mismo criterio y por una razón concreta: si solo el
+admin pudiera ver quién consultó qué, la auditoría sería unilateral. Que la
+vean los dos es lo que la hace simétrica. Nadie la escribe ni la edita.
 
 El **punto C** (RLS en tablas derivadas) no era una decisión sino una
 advertencia técnica: `indicador_snapshots` tiene `scope_type`/`scope_id`

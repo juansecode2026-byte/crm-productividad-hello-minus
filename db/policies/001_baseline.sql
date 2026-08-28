@@ -21,11 +21,12 @@
 --        pudiera insertar en commits, podría fabricarse actividad y todos los
 --        indicadores dejarían de significar algo.
 --
---   Lo comercial (clientes, productos, leads, ventas, oportunidades) queda
---   restringido a admin, como indica la documentación: son datos de terceros,
---   no del equipo, y la decisión de transparencia se tomó sobre lo segundo.
---   Si se quiere abrir también, es un cambio de una línea por tabla — pero es
---   una decisión aparte y conviene tomarla a propósito.
+--   Lo comercial (clientes, productos, leads, ventas, oportunidades) también se
+--   abre a la lectura de ambos. La documentación lo proponía como solo-admin,
+--   pero el equipo decidió lo contrario a propósito: son dos personas con la
+--   misma visibilidad. Uno de los dos tiene rol admin y por eso es el único que
+--   puede modificar montos, clientes y pipeline — la asimetría está en la
+--   escritura, no en lo que cada quien alcanza a ver.
 -- =============================================================================
 
 
@@ -178,6 +179,26 @@ create policy leer_madurez on indicador_madurez
 create policy leer_eval_cases on eval_cases
   for select to authenticated using (persona_actual() is not null);
 
+-- Comercial: se lee igual que el resto. Escribirlo es otra cosa — ver más
+-- abajo, esa parte sí queda solo en manos del admin.
+create policy leer_clientes on clientes
+  for select to authenticated using (persona_actual() is not null);
+
+create policy leer_productos on productos
+  for select to authenticated using (persona_actual() is not null);
+
+create policy leer_canales_venta on canales_venta
+  for select to authenticated using (persona_actual() is not null);
+
+create policy leer_leads on leads
+  for select to authenticated using (persona_actual() is not null);
+
+create policy leer_ventas on ventas
+  for select to authenticated using (persona_actual() is not null);
+
+create policy leer_oportunidades on oportunidades
+  for select to authenticated using (persona_actual() is not null);
+
 
 -- =============================================================================
 -- ESCRITURA — cada quien lo suyo
@@ -312,10 +333,12 @@ create policy admin_canales_venta on canales_venta
 
 
 -- =============================================================================
--- COMERCIAL — solo admin, también para leer
+-- COMERCIAL — lo ven los dos, lo modifica solo el admin
 -- =============================================================================
--- Datos de terceros, no del equipo. Ningún indicador que use un colaborador
--- necesita montos ni pipeline.
+-- Las políticas de lectura están más arriba, con el resto. Estas cubren
+-- insert/update/delete: montos, clientes y pipeline solo los toca el admin.
+-- En Postgres las políticas permisivas se suman con OR, así que la de SELECT
+-- de arriba abre la lectura y estas mantienen cerrada la escritura.
 
 create policy admin_clientes on clientes
   for all to authenticated using (es_admin()) with check (es_admin());
@@ -336,12 +359,15 @@ create policy admin_oportunidades on oportunidades
 -- =============================================================================
 -- AUDITORÍA — se lee, no se toca
 -- =============================================================================
--- Solo lectura para admin. Ninguna política de insert/update/delete para
--- usuarios: si un admin pudiera editar el log, el log no sirve de nada.
--- La escritura entra por service_role.
+-- La leen los dos, por la misma razón que el resto: si solo el admin pudiera
+-- ver quién consultó qué, la auditoría sería unilateral. Que ambos la vean es
+-- lo que la hace simétrica.
+--
+-- Ninguna política de insert/update/delete, para nadie: si un admin pudiera
+-- editar el log, el log no sirve de nada. La escritura entra por service_role.
 
 create policy leer_auditoria on auditoria_log
-  for select to authenticated using (es_admin());
+  for select to authenticated using (persona_actual() is not null);
 
 
 -- =============================================================================

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+
+# Temporales del CLI de Supabase (npx supabase ...)
+supabase/.temp/
+
+# Sistema
+.DS_Store
+Thumbs.db

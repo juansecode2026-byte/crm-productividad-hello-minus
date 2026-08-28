@@ -4,6 +4,10 @@ Supabase (Postgres 17). El schema corresponde a la **Fase 01** del plan de
 construcción: 32 tablas en 9 bloques. Ver
 [docs/fases-crm-productividad-hello-minus.md](../docs/fases-crm-productividad-hello-minus.md).
 
+**Proyecto Supabase:** `qutqsyokdlitflybfrus` (`crm-productividad-hello-minus`,
+región us-east-1). Schema y políticas **aplicados el 2026-08-28**: 32 tablas con
+RLS, 61 políticas, 0 tablas sin cubrir, advisors de seguridad en limpio.
+
 ## Orden de ejecución
 
 Los archivos se aplican en este orden y no en otro. Cada uno asume que el
@@ -74,22 +78,34 @@ que se mueve solo no sirve para decidir nada.
 
 ## Funciones auxiliares
 
-Definidas en `policies/001_baseline.sql`:
+Definidas en `policies/001_baseline.sql`, en el schema **`private`** (no en
+`public`):
 
 | Función | Devuelve |
 |---|---|
-| `persona_actual()` | El `personas.id` del usuario autenticado, o `NULL` si no tiene fila. |
-| `es_admin()` | Si el usuario actual es admin y está activo. |
-| `lidera_proyecto(uuid)` | Si es el `encargado_id` de ese proyecto. |
-| `es_miembro(uuid)` | Si es miembro vigente (sin `fecha_salida`) de ese proyecto. |
+| `private.persona_actual()` | El `personas.id` del usuario autenticado, o `NULL` si no tiene fila. |
+| `private.es_admin()` | Si el usuario actual es admin y está activo. |
+| `private.lidera_proyecto(uuid)` | Si es el `encargado_id` de ese proyecto. |
+| `private.es_miembro(uuid)` | Si es miembro vigente (sin `fecha_salida`) de ese proyecto. |
 
-Las cuatro son `SECURITY DEFINER` con `search_path` fijo. Es obligatorio: sin
-`DEFINER`, la política de `personas` llamaría a una función que lee `personas`,
-que dispara la política otra vez — recursión infinita. El `search_path` fijo
-evita que un esquema temporal las secuestre.
+**Por qué en `private`:** Supabase expone el schema `public` por PostgREST, así
+que una función ahí queda llamable como `/rest/v1/rpc/<nombre>`. Estas son
+plumbing de RLS, no API. `private` no lo expone PostgREST. El rol
+`authenticated` tiene `USAGE` sobre el schema y `EXECUTE` sobre las cuatro
+funciones; `anon` tiene `USAGE` pero ningún `EXECUTE`.
+
+**Por qué `SECURITY DEFINER` con `search_path` fijo:** sin `DEFINER`, la
+política de `personas` llamaría a una función que lee `personas`, que dispara la
+política otra vez — recursión infinita. El `search_path` fijo evita que un
+esquema temporal las secuestre.
 
 ## Pendiente
 
+- **Sembrar los dos integrantes en `personas`** con su `auth_user_id` (de
+  Supabase Auth) y uno de ellos con `rol = 'admin'`. Sin esto,
+  `private.persona_actual()` devuelve `NULL` y RLS deja a todos afuera: la base
+  está cerrada hasta que existan esas dos filas. Va como migración de datos o
+  seed, no a mano.
 - Decidir si hace falta un **rol comercial** separado de admin.
 - Decidir el origen del **registro de tiempo**: captura manual (precisa, exige
   disciplina) o estimación automática desde sesiones de Claude Code (cero
@@ -98,3 +114,11 @@ evita que un esquema temporal las secuestre.
   indicadores del catálogo y los Grupos A/B/C de
   [indicadores-individuales](../docs/indicadores-individuales-hello-minus.md).
 - Sembrar `roles_proyecto` y `canales_venta`.
+
+## Notas de rendimiento
+
+Los advisors marcan varias FK sin índice de cobertura (nivel INFO): columnas
+como `creado_por`, `completado_por`, `resuelto_por`, `cliente_id`. Con dos
+usuarios y poco volumen no afecta; se agregan índices cuando alguna consulta
+real lo pida. Las FK que sí se usan para filtrar y unir (`persona_id`,
+`proyecto_id`, `repo_id`) ya tienen índice en `000_schema_inicial.sql`.

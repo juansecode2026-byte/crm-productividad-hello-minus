@@ -16,8 +16,10 @@ anterior ya corrió.
 | Orden | Archivo | Qué hace |
 |---|---|---|
 | 1 | `000_schema_inicial.sql` | Tipos, 32 tablas, índices. Habilita RLS en todas. |
-| 2 | `policies/001_baseline.sql` | Funciones auxiliares y políticas RLS. |
-| 3+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 2 | `policies/001_baseline.sql` | Schema `private`, funciones auxiliares y 61 políticas RLS. |
+| 3 | `migrations/001_vincular_auth_y_catalogos.sql` | Trigger de vinculación con Auth + catálogos base. |
+| 4 | `migrations/002_seed_personas.sql` | Los dos integrantes. **Datos provisionales.** |
+| 5+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base
@@ -99,13 +101,29 @@ política de `personas` llamaría a una función que lee `personas`, que dispara
 política otra vez — recursión infinita. El `search_path` fijo evita que un
 esquema temporal las secuestre.
 
+## Cómo entra una persona al sistema
+
+Tres piezas que tienen que coincidir, y el orden importa:
+
+1. **Fila en `personas`** con su email real (`migrations/002_seed_personas.sql`).
+2. **Registro en Supabase Auth** con **ese mismo email**. El trigger
+   `al_crear_usuario_vincular_persona` enlaza el `auth_user_id` solo.
+3. **`github_username`** con el usuario real de sus commits.
+
+Si alguien se registra en Auth *antes* de que su email real esté en `personas`,
+el trigger no engancha y hay que vincular a mano — el `UPDATE` está al pie de
+`002_seed_personas.sql`.
+
+Sin el paso 2 completo, `private.persona_actual()` devuelve `NULL` y RLS deja a
+esa persona afuera de todo. Sin el paso 3, su actividad de GitHub llega pero
+queda huérfana y sus indicadores individuales salen vacíos.
+
 ## Pendiente
 
-- **Sembrar los dos integrantes en `personas`** con su `auth_user_id` (de
-  Supabase Auth) y uno de ellos con `rol = 'admin'`. Sin esto,
-  `private.persona_actual()` devuelve `NULL` y RLS deja a todos afuera: la base
-  está cerrada hasta que existan esas dos filas. Va como migración de datos o
-  seed, no a mano.
+- **Reemplazar los datos provisionales de `personas`.** Las dos filas actuales
+  tienen emails `.invalid` y `github_username` en NULL: la base sigue cerrada
+  hasta que se pongan los reales. Instrucciones al pie de
+  `migrations/002_seed_personas.sql`.
 - Decidir si hace falta un **rol comercial** separado de admin.
 - Decidir el origen del **registro de tiempo**: captura manual (precisa, exige
   disciplina) o estimación automática desde sesiones de Claude Code (cero

@@ -1,6 +1,6 @@
 # Estructura del proyecto — CRM Productividad Hello-Minus
 
-**Avance:** 3 de 21 carpetas con contenido.
+**Avance:** 4 de 21 carpetas con contenido.
 
 Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 
@@ -8,7 +8,7 @@ Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 |---|---|---|
 | ✅ | `docs/` | Documentación de negocio y técnica (CONTEXT.md, indicadores del dashboard, notas de decisiones, capturas de referencia) |
 | ✅ | `db/` | Todo lo relacionado con la base de datos — 000_schema_inicial.sql (Supabase/Postgres) y README.md con el orden de ejecución viven acá |
-| ⬜ | `db/migrations/` | Migraciones incrementales del schema, en orden cronológico (a partir de 000_schema_inicial.sql) |
+| ✅ | `db/migrations/` | Migraciones incrementales del schema, en orden cronológico (a partir de 000_schema_inicial.sql) |
 | ✅ | `db/policies/` | Políticas RLS, en archivos separados del schema y de las migraciones (STACK.md lo exige) — RLS obligatorio desde el primer día |
 | ⬜ | `backend/` | Capa de servidor completa |
 | ⬜ | `backend/api/` | App Node.js + Express — capa delgada sobre Supabase, CORS explícito y acotado. Solo la lógica que Supabase no resuelve por sí solo |

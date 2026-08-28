@@ -72,9 +72,10 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 
 ## Pendiente / en decisión
 
-- **Sembrar los dos integrantes en `personas`** (con `auth_user_id` y uno como
-  `admin`). Hasta que existan, RLS deja la base cerrada. Ver
-  [db/README.md](db/README.md).
+- **Poner los datos reales de los dos integrantes en `personas`.** Las filas
+  existen pero con emails `.invalid` y `github_username` en NULL: hasta que se
+  corrijan y cada quien se registre en Auth con ese mismo email, RLS deja la
+  base cerrada. Ver [db/README.md](db/README.md).
 - Rol comercial separado de admin: ¿hace falta?
 - Origen del registro de tiempo: manual vs. inferido desde sesiones de Claude Code.
 - Detalle de las fases 03-13 (solo tienen título).

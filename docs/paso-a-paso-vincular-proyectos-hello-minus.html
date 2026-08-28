@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paso a Paso para Vincular Proyectos — Hello Minus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:#EDEFEA; --paper-raised:#F6F7F3; --ink:#1B2430; --ink-soft:#5B6472;
+    --line:rgba(27,36,48,0.12); --line-strong:rgba(27,36,48,0.22);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  ::selection{background:#1B2430;color:var(--paper)}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px}
+
+  header.hero{padding:68px 0 34px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--ink-soft);display:inline-block}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(30px,5vw,48px);
+    line-height:1.05;letter-spacing:-.01em;margin:16px 0 14px}
+  .hero-sub{font-size:15.5px;line-height:1.6;color:var(--ink-soft);max-width:62ch;margin:0 0 26px}
+  .stat-row{display:flex;border-top:1px solid var(--line)}
+  .stat{flex:1;padding:16px 0 0;border-right:1px solid var(--line)}
+  .stat:last-child{border-right:none}
+  .stat-num{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:600}
+  .stat-label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-soft);margin-top:4px}
+
+  nav.index{position:sticky;top:0;z-index:10;background:rgba(237,239,234,.94);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:12px 0}
+  .nav-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+  .nav-scroll::-webkit-scrollbar{display:none}
+  .nav-chip{flex:none;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink);
+    text-decoration:none;padding:7px 12px;border:1px solid var(--line-strong);border-radius:999px;
+    background:var(--paper-raised);white-space:nowrap;transition:border-color .15s ease}
+  .nav-chip:hover{border-color:var(--accent)}
+
+  section.parte{padding:48px 0 12px;border-bottom:1px solid var(--line)}
+  .parte-head{padding-left:20px;border-left:3px solid var(--accent);margin-bottom:28px}
+  .parte-letra{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent)}
+  .parte-head h2{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:600;margin:4px 0 6px}
+  .parte-nota{margin:0;color:var(--ink-soft);font-size:14px;max-width:58ch}
+
+  .paso-list{position:relative;margin-left:22px;border-left:2px solid var(--line-strong)}
+  .paso{position:relative;display:grid;grid-template-columns:40px 1fr;gap:16px;padding:0 0 22px 0}
+  .paso:last-child{padding-bottom:6px}
+  .paso-marker{position:relative;left:-21px;display:flex;justify-content:center}
+  .paso-num{width:40px;height:40px;border-radius:50%;background:var(--paper);border:2px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;
+    font-size:13px;font-weight:600;color:var(--accent);flex:none}
+  .paso-card{background:var(--paper-raised);border:1px solid var(--line);border-radius:9px;
+    padding:14px 18px 16px;margin-left:-2px}
+  .paso-card h4{font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:600;margin:0 0 5px}
+  .paso-card p{margin:0;font-size:13.5px;line-height:1.55;color:var(--ink)}
+
+  section.detalles, section.herramientas{padding:48px 0}
+  .sec-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-soft)}
+  h2.sec-title{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:600;margin:6px 0 22px}
+
+  .detalle-item{display:grid;grid-template-columns:30px 1fr;gap:14px;padding:16px 18px;
+    background:var(--paper-raised);border:1px solid #A23B3B;border-radius:9px;margin-bottom:14px}
+  .detalle-icon{width:24px;height:24px;border-radius:50%;background:#A23B3B;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;
+    font-weight:700;font-size:13px;flex:none}
+  .detalle-item h4{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;margin:0 0 6px}
+  .detalle-item p{margin:0;font-size:13.5px;line-height:1.55;color:var(--ink)}
+
+  .herr-grupo{margin-bottom:22px}
+  .herr-grupo h4{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;
+    color:var(--accent);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line-strong)}
+  .herr-list{display:flex;flex-direction:column;gap:11px}
+  .herr-item{display:grid;grid-template-columns:8px 1fr;gap:12px;align-items:baseline}
+  .herr-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px}
+  .herr-item b{font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:600}
+  .herr-item p{margin:2px 0 0;font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+
+  .fuentes-grid{display:flex;flex-direction:column;gap:18px}
+  .fuente-card{background:var(--paper-raised);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:9px;padding:20px 22px}
+  .fuente-card h3{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;color:var(--accent);margin-bottom:6px}
+  .fuente-resumen{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin-bottom:14px;max-width:58ch}
+  .fuente-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+  .fuente-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:12px}
+  .fuente-list li{font-size:13px;line-height:1.5;color:var(--ink)}
+  .fuente-list li b{display:block;font-family:'Space Grotesk',sans-serif;font-size:13.5px;
+    font-weight:600;margin-bottom:3px}
+  .fuente-list li span{display:block;font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+
+  footer{padding:40px 0 70px;color:var(--ink-soft);font-size:13px;line-height:1.6}
+  footer hr{border:none;border-top:1px solid var(--line);margin:0 0 20px}
+
+  @media (max-width:640px){
+    .paso{grid-template-columns:30px 1fr;gap:10px}
+    .paso-num{width:30px;height:30px;font-size:11px;left:-16px}
+    .paso-list{margin-left:14px}
+    .stat-row{flex-wrap:wrap}
+    .stat{flex:1 1 50%;border-right:none;border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow">Hello Minus · Sistema de Productividad</span>
+    <h1>Paso a Paso para Vincular Proyectos al CRM de Productividad</h1>
+    <p class="hero-sub">
+      Proceso para conectar todos los proyectos ya existentes de Hello Minus. Se divide en lo que se
+      hace una sola vez para toda la organización, y lo que se repite por cada proyecto que se conecta.
+    </p>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num">17</div><div class="stat-label">Pasos</div></div>
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">Partes</div></div>
+      <div class="stat"><div class="stat-num">9</div><div class="stat-label">Herramientas</div></div>
+    </div>
+  </header>
+
+  <nav class="index">
+    <div class="nav-scroll">
+      <a href="#prep" class="nav-chip" style="--accent:#6B4E9E">Parte A · Preparación</a>
+      <a href="#proyecto" class="nav-chip" style="--accent:#3A6EA5">Parte B · Por proyecto</a>
+      <a href="#cierre" class="nav-chip" style="--accent:#2F7D5B">Parte C · Cierre</a>
+      <a href="#detalles" class="nav-chip" style="--accent:#A23B3B">Detalles</a>
+      <a href="#herramientas" class="nav-chip" style="--accent:#3A6EA5">Herramientas</a>
+      <a href="#config-ghapp" class="nav-chip" style="--accent:#3A6EA5">Config GitHub App</a>
+      <a href="#fuentes" class="nav-chip" style="--accent:#A6631E">Fuentes de datos</a>
+    </div>
+  </nav>
+
+  
+    <section id="prep" class="parte" style="--accent:#6B4E9E">
+      <div class="parte-head">
+        <span class="parte-letra">Parte A</span>
+        <h2>Una sola vez — Preparación</h2>
+        <p class="parte-nota">Se hace para toda la organización, no se repite por proyecto.</p>
+      </div>
+      <div class="paso-list">
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">01</span></div>
+          <div class="paso-card">
+            <h4>Crear la GitHub App en la organización de Hello Minus</h4>
+            <p>Permisos de solo lectura: Contents, Metadata, Pull requests, Issues, Commit statuses. Suscrita a push, pull_request, issues, release.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">02</span></div>
+          <div class="paso-card">
+            <h4>Instalarla sobre la organización</h4>
+            <p>Elegir 'todos los repositorios' para que un proyecto nuevo no requiera volver a tocar la instalación.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">03</span></div>
+          <div class="paso-card">
+            <h4>Levantar el endpoint receptor de webhooks</h4>
+            <p>Edge Function de Supabase que valida la firma HMAC (X-Hub-Signature-256) antes de aceptar cualquier evento.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">04</span></div>
+          <div class="paso-card">
+            <h4>Levantar el endpoint de ingesta de telemetría</h4>
+            <p>El que recibe trazas de agentes y eventos de proyectos — modelo push, con validación de esquema y rate limiting.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">05</span></div>
+          <div class="paso-card">
+            <h4>Construir la tabla de mapeo github_username → persona_id</h4>
+            <p>Sin esto los commits llegan pero no se pueden atribuir a nadie — bloquea casi todos los indicadores de persona.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">06</span></div>
+          <div class="paso-card">
+            <h4>Definir las reglas de inferencia de área</h4>
+            <p>Qué rutas corresponden a qué área (/db → Backend/Datos, /agents → Agente, etc.) — de esto depende la narrativa semanal.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="proyecto" class="parte" style="--accent:#3A6EA5">
+      <div class="parte-head">
+        <span class="parte-letra">Parte B</span>
+        <h2>Por cada proyecto existente</h2>
+        <p class="parte-nota">Este bloque se repite una vez por cada proyecto que se conecta.</p>
+      </div>
+      <div class="paso-list">
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">07</span></div>
+          <div class="paso-card">
+            <h4>Crear el proyecto en el CRM</h4>
+            <p>Nombre, cliente (si aplica), tipo, prioridad, fecha de inicio real — no la de hoy.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">08</span></div>
+          <div class="paso-card">
+            <h4>Vincular sus repositorios</h4>
+            <p>Un proyecto puede tener varios: backend, frontend, agente. Se registran en la tabla repositorios.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">09</span></div>
+          <div class="paso-card">
+            <h4>Registrar el equipo con fechas históricas</h4>
+            <p>Quién participó y desde cuándo, incluyendo gente que ya salió — si no, el bus factor y la estabilidad del equipo salen mal calculados.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">10</span></div>
+          <div class="paso-card">
+            <h4>Ejecutar el backfill de GitHub</h4>
+            <p>Traer 6-12 meses de commits y PRs vía API. Proyecto por proyecto, no todos a la vez: los límites de tasa de la API son reales.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">11</span></div>
+          <div class="paso-card">
+            <h4>Ubicar el proyecto en su etapa actual (1-9)</h4>
+            <p>Y cargar el historial_etapas aproximado si se puede reconstruir. Si no, se marca desde hoy.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">12</span></div>
+          <div class="paso-card">
+            <h4>Instalar el paquete de telemetría en el proyecto</h4>
+            <p>hello-minus-telemetry + su API key propia — desde aquí el proyecto reporta solo.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">13</span></div>
+          <div class="paso-card">
+            <h4>Activar la telemetría de Claude Code</h4>
+            <p>CLAUDE_CODE_ENABLE_TELEMETRY=1 apuntando al endpoint de ingesta, para las sesiones de ese proyecto.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">14</span></div>
+          <div class="paso-card">
+            <h4>Validar que los datos llegan correctos</h4>
+            <p>Revisar que los commits se atribuyeron a las personas correctas y que las áreas se infirieron bien.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="cierre" class="parte" style="--accent:#2F7D5B">
+      <div class="parte-head">
+        <span class="parte-letra">Parte C</span>
+        <h2>Cierre</h2>
+        <p class="parte-nota">El orden en que se conectan los proyectos, y cómo se marca el corte de confiabilidad.</p>
+      </div>
+      <div class="paso-list">
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">15</span></div>
+          <div class="paso-card">
+            <h4>Conectar primero un solo proyecto de prueba</h4>
+            <p>Idealmente uno pequeño y reciente — validar el flujo completo antes de tocar los demás.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">16</span></div>
+          <div class="paso-card">
+            <h4>Conectar el resto en orden de importancia</h4>
+            <p>Los activos primero; los archivados pueden esperar o quedarse sin conectar si ya no aportan información útil.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-marker"><span class="paso-num">17</span></div>
+          <div class="paso-card">
+            <h4>Marcar la fecha de corte de datos</h4>
+            <p>Anotar desde cuándo los datos son confiables por proyecto — el backfill mezcla datos menos precisos con datos en vivo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  <section id="detalles" class="detalles">
+    <span class="sec-eyebrow">Advertencias</span>
+    <h2 class="sec-title">Detalles a tener en cuenta</h2>
+    
+      <div class="detalle-item">
+        <span class="detalle-icon">!</span>
+        <div><h4>El backfill no reconstruye todo</h4><p>Trae commits, PRs e issues — pero no trae trazas de agentes ni sesiones de Claude Code de proyectos pasados. Eso solo existe desde que se instrumenta. Los indicadores de Loop/Harness/Graph y los de Claude Code arrancan en cero para todos los proyectos existentes, sin excepción.</p></div>
+      </div>
+      <div class="detalle-item">
+        <span class="detalle-icon">!</span>
+        <div><h4>El paso 9 es el que más se subestima</h4><p>Reconstruir quién estuvo en qué proyecto y cuándo es trabajo manual y tedioso, y es tentador saltárselo — pero sin eso, varios indicadores de persona van a dar números incorrectos con apariencia de correctos, que es peor que no tenerlos.</p></div>
+      </div>
+  </section>
+
+  <section id="herramientas" class="herramientas">
+    <span class="sec-eyebrow">Stack requerido</span>
+    <h2 class="sec-title">Herramientas necesarias</h2>
+    
+      <div class="herr-grupo" style="--accent:#3A6EA5">
+        <h4>Integración con GitHub</h4>
+        <div class="herr-list"><div class="herr-item"><span class="herr-dot"></span><div><b>GitHub App</b><p>instalada a nivel de organización, permisos de solo lectura</p></div></div><div class="herr-item"><span class="herr-dot"></span><div><b>GitHub REST / GraphQL API</b><p>para el backfill de 6-12 meses de historia</p></div></div><div class="herr-item"><span class="herr-dot"></span><div><b>Validación HMAC</b><p>X-Hub-Signature-256 para verificar cada webhook entrante</p></div></div></div>
+      </div>
+      <div class="herr-grupo" style="--accent:#6B4E9E">
+        <h4>Infraestructura propia</h4>
+        <div class="herr-list"><div class="herr-item"><span class="herr-dot"></span><div><b>Supabase</b><p>Postgres, Edge Functions, RLS y autenticación</p></div></div><div class="herr-item"><span class="herr-dot"></span><div><b>Endpoint de ingesta de telemetría</b><p>con validación de esquema y rate limiting</p></div></div><div class="herr-item"><span class="herr-dot"></span><div><b>Tabla de mapeo github_username → persona_id</b><p>atribución de commits a personas</p></div></div></div>
+      </div>
+      <div class="herr-grupo" style="--accent:#0F6B7A">
+        <h4>Telemetría de agentes y código</h4>
+        <div class="herr-list"><div class="herr-item"><span class="herr-dot"></span><div><b>hello-minus-telemetry</b><p>paquete propio (npm/pip) instalado por proyecto</p></div></div><div class="herr-item"><span class="herr-dot"></span><div><b>Claude Agent SDK / Claude Code</b><p>con CLAUDE_CODE_ENABLE_TELEMETRY=1 y exportador OpenTelemetry</p></div></div><div class="herr-item"><span class="herr-dot"></span><div><b>Colector OpenTelemetry</b><p>destino de las trazas antes de llegar a Supabase</p></div></div></div>
+      </div>
+  </section>
+
+  <section id="config-ghapp" class="parte" style="--accent:#3A6EA5"><div class="parte-head"><span class="parte-letra">Configuración</span><h2>GitHub App — paso a paso</h2><p class="parte-nota">Cómo se crea e instala la GitHub App mencionada en Herramientas necesarias, con las pantallas y campos exactos de GitHub.</p></div><div class="paso-list"><div class="paso"><div class="paso-marker"><span class="paso-num">01</span></div><div class="paso-card"><h4>Ir a la configuración de la organización</h4><p>En GitHub: Settings de la organización Hello Minus -&gt; Developer settings -&gt; GitHub Apps -&gt; New GitHub App.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">02</span></div><div class="paso-card"><h4>Datos básicos de la App</h4><p>GitHub App name (ej. hello-minus-productividad), Homepage URL (la URL del CRM), Webhook URL (el endpoint de la Edge Function de Supabase que recibe los eventos).</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">03</span></div><div class="paso-card"><h4>Webhook secret</h4><p>Generar una clave y guardarla — es la que se usa para validar la firma HMAC (X-Hub-Signature-256) de cada evento entrante.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">04</span></div><div class="paso-card"><h4>Permisos de repositorio (Repository permissions)</h4><p>Contents: Read-only · Metadata: Read-only · Pull requests: Read-only · Issues: Read-only · Commit statuses: Read-only. Ningún permiso de escritura.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">05</span></div><div class="paso-card"><h4>Suscribirse a eventos (Subscribe to events)</h4><p>Push, Pull request, Issues, Release — son los que disparan el webhook hacia el CRM.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">06</span></div><div class="paso-card"><h4>Dónde puede instalarse</h4><p>'Only on this account' — restringe la App a la organización de Hello Minus, no la deja instalable por cualquiera.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">07</span></div><div class="paso-card"><h4>Generar la clave privada</h4><p>Al guardar la App, GitHub ofrece 'Generate a private key' (.pem) — se usa para autenticar las llamadas a la API como la App, se guarda en el gestor de secretos, nunca en el repositorio.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">08</span></div><div class="paso-card"><h4>Instalar la App</h4><p>Desde la página de la App -&gt; Install App -&gt; elegir la organización Hello Minus -&gt; seleccionar 'All repositories' -&gt; Install.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">09</span></div><div class="paso-card"><h4>Guardar el Installation ID</h4><p>GitHub lo genera al instalar (visible en la URL de instalación o vía API) — se guarda en la tabla repositorios/config del CRM, es lo que identifica esa instalación en cada llamada.</p></div></div><div class="paso"><div class="paso-marker"><span class="paso-num">10</span></div><div class="paso-card"><h4>Configurar variables de entorno en el backend</h4><p>APP_ID, PRIVATE_KEY, WEBHOOK_SECRET e INSTALLATION_ID — con estas cuatro el backend ya puede autenticarse y validar los eventos que lleguen.</p></div></div></div></section>
+
+  <section id="fuentes" class="herramientas"><span class="sec-eyebrow">Sintesis</span><h2 class="sec-title">Que aporta cada fuente de datos</h2><p style="color:var(--ink-soft);font-size:14.5px;line-height:1.6;max-width:64ch;margin:-10px 0 26px">Ninguna fuente por si sola cubre el catalogo completo. Se complementan, no se solapan — y ninguna requiere conectarse directamente a la base de datos de un proyecto.</p><div class="fuentes-grid"><div class="fuente-card" style="--accent:#3A6EA5"><h3>GitHub</h3><p class="fuente-resumen">Actividad real de construcción: quién tocó qué, cuándo y con qué frecuencia.</p><span class="fuente-label">Aporta</span><ul class="fuente-list"><li><b>Throughput (PROD-01)</b><span>Cuenta cuantas tareas cerro de verdad una persona esta semana, no cuantas horas dijo que trabajo.</span></li><li><b>Concentración de conocimiento / bus factor (RIE-01)</b><span>Avisa si todo el conocimiento de una parte del proyecto esta solo en la cabeza de una persona.</span></li><li><b>Antigüedad sin movimiento (RIE-02)</b><span>Avisa cuando un proyecto lleva muchos dias sin que nadie le toque nada.</span></li><li><b>Tasa de retrabajo (EFI-04)</b><span>Mide cuanto se repite trabajo que ya se habia dado por terminado.</span></li><li><b>Ratio colaboradores / horas efectivas (EFI-07)</b><span>Muestra si hay demasiada gente metida en un proyecto para lo poco que esta avanzando.</span></li><li><b>Cycle time por estado (EFI-02)</b><span>Dice en que parte del proceso se quedan atascados los proyectos casi siempre.</span></li><li><b>Contribución ponderada por tipo de trabajo</b><span>Muestra que tipo de trabajo hizo cada persona -base de datos, frontend, etc.- no solo cuanto codigo escribio.</span></li><li><b>Aporte por etapa del proyecto</b><span>Dice en cuales etapas del proyecto participo cada persona.</span></li><li><b>Registro de Implementaciones por Proyecto</b><span>Deja anotado quien construyo cada parte especifica del proyecto.</span></li></ul></div><div class="fuente-card" style="--accent:#0F6B7A"><h3>Telemetría (Agentes + Claude Code)</h3><p class="fuente-resumen">Lo único que ve dentro de la ejecución de un agente — GitHub no tiene forma de verlo.</p><span class="fuente-label">Aporta</span><ul class="fuente-list"><li><b>Los 7 indicadores de Loop</b><span>Dicen si el agente llega a la respuesta correcta rapido, o si da vueltas sin avanzar.</span></li><li><b>Los 6 indicadores de Harness</b><span>Dicen si las herramientas y el contexto que le dimos al agente le sirven, o si le estamos poniendo trabas.</span></li><li><b>Los 5 indicadores de Graph</b><span>Dicen en que parte de un proceso con varios pasos se traba el trabajo.</span></li><li><b>Sesiones de Claude Code</b><span>Cuenta cuanto usa cada persona a Claude Code para programar.</span></li><li><b>Costo por tarea resuelta (LOOP-07)</b><span>Dice cuanto cuesta en dinero que un agente termine una tarea.</span></li></ul></div><div class="fuente-card" style="--accent:#A6631E"><h3>Base de datos / push de agregados</h3><p class="fuente-resumen">No se lee la base de datos directamente — el proyecto empuja el numero ya calculado, igual que con CRM Ventas.</p><span class="fuente-label">Aporta</span><ul class="fuente-list"><li><b>Costo de inferencia proyectado en producción</b><span>Calcula cuanto va a costar tener el agente funcionando de verdad con usuarios reales.</span></li><li><b>Ratio código generado vs. código revisado</b><span>Muestra cuanto del codigo que escribio la IA fue realmente revisado por una persona.</span></li><li><b>Efectividad de canal / agente comercial</b><span>Dice que tan bien vende cada canal -o el chatbot- comparado con los demas.</span></li><li><b>Uptime y salud del proyecto en producción</b><span>Dice si el proyecto ya en funcionamiento se cae o tiene fallas.</span></li><li><b>Conversión real de un chatbot con usuarios reales</b><span>Mide cuantas personas que hablaron con el chatbot terminaron comprando de verdad.</span></li><li><b>Madurez del agente vs. criterios de aceptación</b><span>Dice que tan cerca esta el agente de cumplir lo pedido desde el inicio, para no quedarse en 'ya casi esta listo' para siempre.</span></li></ul></div></div></section>
+
+  <footer>
+    <hr>
+    Paso a paso para vincular proyectos — Hello Minus. Complementa el esquema de base de datos de la
+    Fase 01 y la ruta de construcción general.
+  </footer>
+
+</div>
+</body>
+</html>

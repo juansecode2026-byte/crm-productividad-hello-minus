@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fases · CRM de Productividad Hello Minus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:#EDEFEA; --paper-raised:#F6F7F3; --ink:#1B2430; --ink-soft:#5B6472;
+    --line:rgba(27,36,48,0.12); --line-strong:rgba(27,36,48,0.22);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased}
+  ::selection{background:#1B2430;color:var(--paper)}
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px}
+
+  header{padding:68px 0 34px;border-bottom:2px solid var(--line-strong)}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--ink-soft);display:inline-block}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(30px,5vw,48px);
+    line-height:1.05;letter-spacing:-.015em;margin:16px 0 0}
+  .total{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft);
+    margin-top:14px;display:block}
+
+  .lista{padding:8px 0 0}
+  .fase{border-bottom:1px solid var(--line)}
+  .fase-head{display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:baseline;
+    padding:22px 8px}
+  .fase-num{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;
+    color:var(--ink-soft);letter-spacing:.02em}
+  .fase h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(17px,2.4vw,21px);
+    font-weight:600;letter-spacing:-.005em;line-height:1.3}
+  .fase-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;
+    text-transform:uppercase;color:#2F7D5B;border:1px solid #2F7D5B;border-radius:999px;
+    padding:3px 10px;white-space:nowrap}
+  .fase-detallada{background:var(--paper-raised)}
+
+  .detalle{padding:0 8px 34px}
+  .detalle-stat{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft)}
+  .detalle-stat span{border:1px solid var(--line-strong);border-radius:999px;padding:3px 11px}
+  .detalle-h{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;
+    letter-spacing:-.005em;margin:28px 0 14px;padding-top:20px;border-top:1px dotted var(--line-strong)}
+  .detalle-h:first-of-type{border-top:none;padding-top:0;margin-top:0}
+
+  .bloques-wrap{display:flex;flex-direction:column;gap:14px}
+  .bloque{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:14px 16px}
+  .bloque h4{font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:600;
+    color:var(--accent);margin-bottom:10px}
+  .tabla-list{display:flex;flex-direction:column;gap:8px}
+  .tabla-row{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:baseline}
+  .tabla-nombre{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:var(--ink)}
+  .tabla-campos{font-size:12px;color:var(--ink-soft);line-height:1.5}
+
+  .rls-wrap{display:flex;flex-direction:column;gap:10px}
+  .rls-row{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+  .rls-rol{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+    color:var(--ink);text-transform:lowercase;margin-bottom:5px}
+  .rls-row p{font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin:0}
+
+  .dec-wrap{display:flex;flex-direction:column;gap:12px}
+  .dec-row{display:grid;grid-template-columns:12px 1fr;gap:12px;align-items:baseline}
+  .dec-dot{width:7px;height:7px;border-radius:50%;background:#2F7D5B;margin-top:5px}
+  .dec-row h5{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;margin-bottom:3px}
+  .dec-row p{font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin:0}
+
+  .pend-wrap{background:var(--paper);border:1px dashed var(--line-strong);border-radius:8px;padding:14px 18px}
+  .pend-wrap ul{margin:0;padding-left:18px}
+  .pend-wrap li{font-size:13px;line-height:1.7;font-family:'Space Grotesk',sans-serif;font-weight:500}
+
+  .hf-wrap{background:var(--paper);border:1px solid var(--line-strong);border-left:3px solid #A23B3B;
+    border-radius:8px;padding:14px 18px}
+  .hf-wrap ul{margin:0;padding-left:18px}
+  .hf-wrap li{font-size:13px;line-height:1.7;font-family:'Space Grotesk',sans-serif;font-weight:500}
+
+  .fase-tag-pend{color:#A6631E;border-color:#A6631E}
+
+  .hf-checklist{display:flex;flex-direction:column;gap:2px}
+  .hf-check-row{display:flex;align-items:flex-start;gap:11px;padding:8px 6px;border-radius:6px;
+    cursor:pointer;transition:background .15s ease}
+  .hf-check-row:hover{background:rgba(27,36,48,0.04)}
+  .hf-check{position:absolute;opacity:0;width:1px;height:1px}
+  .hf-box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line-strong);background:#fff;
+    flex:none;margin-top:1px;position:relative;transition:background .15s ease,border-color .15s ease}
+  .hf-check:checked + .hf-box{background:#A6631E;border-color:#A6631E}
+  .hf-check:checked + .hf-box::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:9px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .hf-check:focus-visible + .hf-box{outline:2px solid var(--ink);outline-offset:2px}
+  .hf-text{font-size:13.5px;line-height:1.55;padding-top:1px}
+  .hf-check:checked ~ .hf-text{color:var(--ink-soft);text-decoration:line-through;
+    text-decoration-color:var(--line-strong)}
+
+  .rls2-wrap{padding:52px 0 70px;border-top:3px double var(--line-strong);margin-top:24px}
+  .rls2-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft)}
+  .rls2-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(26px,4vw,38px);
+    letter-spacing:-.01em;margin:10px 0 10px}
+  .rls2-intro{font-size:14.5px;color:var(--ink-soft);line-height:1.6;max-width:64ch;margin-bottom:8px}
+  .rls2-h1{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;
+    margin:34px 0 16px;padding-top:22px;border-top:1px dotted var(--line-strong)}
+  .rls2-h1:first-of-type{border-top:none;padding-top:0}
+
+  .rls2-grid{display:flex;flex-direction:column;gap:14px}
+  .rls2-bloque{background:var(--paper-raised);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:10px;padding:18px 20px}
+  .rls2-bloque h3{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;
+    color:var(--accent);margin-bottom:6px}
+  .rls2-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);
+    line-height:1.6;margin-bottom:14px;padding-bottom:12px;border-bottom:1px dotted var(--line-strong)}
+  .rls2-puntos{display:flex;flex-direction:column;gap:10px}
+  .rls2-punto-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+  .rls2-punto p{margin:0;font-size:13px;line-height:1.55;color:var(--ink)}
+
+  .rls2-delicados{display:flex;flex-direction:column;gap:12px}
+  .rls2-delicado{background:var(--paper-raised);border:1px solid #A23B3B;border-radius:10px;padding:16px 20px}
+  .rls2-delicado h4{font-family:'Space Grotesk',sans-serif;font-size:14.5px;font-weight:600;margin-bottom:8px}
+  .rls2-delicado p{margin:0;font-size:13px;line-height:1.6;color:var(--ink)}
+
+  .rls2-reco{margin-top:26px;padding:18px 20px;border:1px dashed var(--line-strong);border-radius:9px}
+  .rls2-reco-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+  .rls2-reco p{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink)}
+  .rls2-reco b{font-weight:600}
+
+  footer{padding:40px 0 80px;color:var(--ink-soft);font-size:13px;line-height:1.6}
+
+  @media (max-width:560px){
+    .fase-head{grid-template-columns:40px 1fr;gap:10px}
+    .fase-tag{grid-column:1/3;width:fit-content}
+    .tabla-row{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow">Hello Minus</span>
+    <h1>Fases · CRM de Productividad Hello Minus</h1>
+    <span class="total">13 fases · Fase 01 detallada</span>
+  </header>
+
+  <div class="lista">
+      <div class="fase fase-detallada">
+        <div class="fase-head">
+          <span class="fase-num">01</span>
+          <h2>Esquema de base de datos y scaffolding</h2>
+          <span class="fase-tag">Detallada</span>
+        </div>
+        
+      <div class="detalle">
+        <div class="detalle-stat">
+          <span>32 tablas</span><span>9 bloques</span><span>3 roles + sistema</span>
+        </div>
+
+        <h3 class="detalle-h">Estructura de tablas</h3>
+        <div class="bloques-wrap">
+        <div class="bloque" style="--accent:#6B4E9E">
+          <h4>Núcleo — Personas y acceso</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">personas</span><span class="tabla-campos">id, nombre, email, auth_user_id, rol (admin/lider_proyecto/colaborador), github_username, activo, fecha_ingreso</span></div><div class="tabla-row"><span class="tabla-nombre">roles_proyecto</span><span class="tabla-campos">separa el rol global del rol especifico por proyecto, cuando difieren</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#3A6EA5">
+          <h4>Proyectos y equipo</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">clientes</span><span class="tabla-campos">id, nombre, contacto, datos comerciales basicos</span></div><div class="tabla-row"><span class="tabla-nombre">proyectos</span><span class="tabla-campos">id, nombre, descripcion, cliente_id, creado_por, encargado_id, tipo, prioridad, etapa_actual (1-9), estado (activo/pausado/archivado), modalidad (individual/equipo), fecha_inicio, fecha_objetivo, fecha_limite, alcance_congelado_en, horas_estimadas</span></div><div class="tabla-row"><span class="tabla-nombre">miembros_proyecto</span><span class="tabla-campos">proyecto_id, persona_id, rol_en_proyecto, % dedicacion declarada, fecha_entrada, fecha_salida</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#A6631E">
+          <h4>Proceso — etapas, checklist, tareas semanales</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">historial_etapas</span><span class="tabla-campos">proyecto_id, etapa, entra_en, sale_en — alimenta Cycle time por estado</span></div><div class="tabla-row"><span class="tabla-nombre">checklist_items</span><span class="tabla-campos">proyecto_id, etapa, texto, completado, completado_por, completado_en</span></div><div class="tabla-row"><span class="tabla-nombre">hitos</span><span class="tabla-campos">proyecto_id, nombre, etapa, fecha_planeada, fecha_real, estado</span></div><div class="tabla-row"><span class="tabla-nombre">tareas_semanales</span><span class="tabla-campos">id, proyecto_id, persona_id, semana_inicio, semana_fin, titulo, areas[], creado_por</span></div><div class="tabla-row"><span class="tabla-nombre">tarea_evidencia</span><span class="tabla-campos">tarea_id, area, fuente (commit/PR/sesion_claude_code), referencia, detectado_en</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#3C8C89">
+          <h4>Alcance y avance del proyecto</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">componentes_proyecto</span><span class="tabla-campos">proyecto_id, nombre (Base de datos/Backend/Frontend/Agentes), peso_pct, orden — el nivel 1 del checklist</span></div><div class="tabla-row"><span class="tabla-nombre">puntos_componente</span><span class="tabla-campos">componente_id, nombre, responsable_id, rutas_esperadas, verificado, verificado_en, origen (manual/sugerido_por_agente/CLAUDE.md) — nivel 2, de aqui sale el % atribuido por persona</span></div><div class="tabla-row"><span class="tabla-nombre">candidatos_alcance</span><span class="tabla-campos">proyecto_id, nombre, fuente, detectado_en, estado (pendiente/aprobado/descartado/archivado) — no cuentan en el % hasta aprobarse</span></div><div class="tabla-row"><span class="tabla-nombre">bloqueos</span><span class="tabla-campos">proyecto_id, persona_id, descripcion, abierto_en, resuelto_en, resuelto_por, tipo (interno/externo/cliente)</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#2F7D5B">
+          <h4>Tiempo y actividad</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">registro_tiempo</span><span class="tabla-campos">persona_id, proyecto_id, area, fecha, horas, tipo (facturable/interno), origen (manual/inferido)</span></div><div class="tabla-row"><span class="tabla-nombre">implementaciones</span><span class="tabla-campos">proyecto_id, persona_id, descripcion, area, commit_o_pr_vinculado, creado_en</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#0F6B7A">
+          <h4>Integraciones externas</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">repositorios</span><span class="tabla-campos">id, proyecto_id, github_repo, github_installation_id</span></div><div class="tabla-row"><span class="tabla-nombre">commits</span><span class="tabla-campos">repo_id, persona_id, sha, archivos_tocados, area_inferida</span></div><div class="tabla-row"><span class="tabla-nombre">pull_requests</span><span class="tabla-campos">repo_id, persona_id, numero, archivos_tocados, area_inferida, mergeado_en</span></div><div class="tabla-row"><span class="tabla-nombre">sesiones_claude_code</span><span class="tabla-campos">persona_id, proyecto_id, session_id, prompt_count, inicio, fin, duracion_activa, archivos_tocados, area_inferida</span></div><div class="tabla-row"><span class="tabla-nombre">trazas_agente</span><span class="tabla-campos">run_id, proyecto_id, agent_id, agent_type, environment, iteration_index, node_name, tool_name, args_hash, tokens, duration, status</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#8A6D1F">
+          <h4>Indicadores</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">indicador_snapshots</span><span class="tabla-campos">indicador_code, scope_type (persona/proyecto/portafolio), scope_id, periodo, valor, detalle (JSON para narrativa y composicion), calculado_en</span></div><div class="tabla-row"><span class="tabla-nombre">indicador_madurez</span><span class="tabla-campos">indicador_code, criterio_texto, meta, valor_actual, estado (maduracion/activo), activado_en</span></div><div class="tabla-row"><span class="tabla-nombre">indicador_catalogo</span><span class="tabla-campos">indicador_code, nombre, categoria, plazo (inmediato/mediano/largo), depende_de (persona/cliente/mixto) — marca los 9 apartados por depender del cliente</span></div><div class="tabla-row"><span class="tabla-nombre">indicador_aplicabilidad</span><span class="tabla-campos">indicador_code, modalidad (individual/equipo), aplica (bool), sustituye_comparacion — soporta los Grupos A/B/C de indicadores individuales</span></div><div class="tabla-row"><span class="tabla-nombre">eval_cases</span><span class="tabla-campos">caso de prueba, resultado_esperado, agent_type, ultimo_puntaje — soporta el pilar Calidad y correctitud</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#A23B3B">
+          <h4>Comercial</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">productos</span><span class="tabla-campos">id, proyecto_origen_id, nombre, descripcion, tipo</span></div><div class="tabla-row"><span class="tabla-nombre">canales_venta</span><span class="tabla-campos">id, nombre (Chatbot, Referido, Outbound, Web, Alianza...)</span></div><div class="tabla-row"><span class="tabla-nombre">leads</span><span class="tabla-campos">id, producto_id, canal_id, fecha_llegada, atendido_por (persona_id), atendido_por_agente_id, convertido, fecha_conversion</span></div><div class="tabla-row"><span class="tabla-nombre">ventas</span><span class="tabla-campos">id, producto_id, cliente_id, lead_id, canal_id, atendido_por_agente_id, monto, fecha, vendido_por</span></div><div class="tabla-row"><span class="tabla-nombre">oportunidades</span><span class="tabla-campos">cliente_id, proyecto_id, canal_venta_id, etapa_embudo, monto, probabilidad, creado_en, cerrado_en, resultado</span></div></div>
+        </div>
+        <div class="bloque" style="--accent:#445C99">
+          <h4>Gobernanza</h4>
+          <div class="tabla-list"><div class="tabla-row"><span class="tabla-nombre">auditoria_log</span><span class="tabla-campos">persona_id, accion, tabla_afectada, registro_id, timestamp — quien vio que dato de que cliente</span></div></div>
+        </div></div>
+
+        <h3 class="detalle-h">Políticas RLS por rol</h3>
+        <div class="rls-wrap"><div class="rls-row"><span class="rls-rol">admin</span><p>Acceso total a todas las tablas, sin excepcion.</p></div><div class="rls-row"><span class="rls-rol">lider_proyecto</span><p>Lectura/escritura completa solo sobre proyectos donde aparece como encargado_id o en miembros_proyecto con ese rol. Ve indicadores agregados de su equipo. Pendiente decidir si tambien ve el detalle granular de Tarea Semanal por persona.</p></div><div class="rls-row"><span class="rls-rol">colaborador</span><p>Lee solo proyectos donde es miembro. Inserta/edita unicamente su propio registro_tiempo y sus propias tareas_semanales. Ve sus propios indicador_snapshots (scope=persona). No ve oportunidades, ventas ni auditoria_log.</p></div><div class="rls-row"><span class="rls-rol">solo-sistema</span><p>commits, pull_requests, sesiones_claude_code, trazas_agente, indicador_snapshots: escritura solo con service_role de Supabase, nadie las edita a mano.</p></div></div>
+
+        <h3 class="detalle-h">Decisiones ya tomadas</h3>
+        <div class="dec-wrap"><div class="dec-row"><span class="dec-dot"></span><div><h5>Una sola GitHub App</h5><p>Todos los repos viven bajo la organizacion de Hello Minus, asi que una instalacion cubre todos los proyectos. No se necesita organizaciones_github para multiples orgs externas.</p></div></div><div class="dec-row"><span class="dec-dot"></span><div><h5>CRM Ventas se conecta como cualquier otro proyecto</h5><p>Empuja sus eventos (lead creado, venta cerrada, canal de origen) a un endpoint de ingesta propio, con su propia API key — mismo patron push que el resto, sin leer su base de datos directamente.</p></div></div><div class="dec-row"><span class="dec-dot"></span><div><h5>Proyecto vs. producto separados</h5><p>Un proyecto es el esfuerzo interno de construccion; un producto es lo que se vende y puede tener varias ventas por distintos canales y clientes.</p></div></div></div>
+
+        <h3 class="detalle-h">Pendiente de decidir</h3>
+        <div class="pend-wrap"><ul><li>¿El lider de proyecto ve el detalle de Tarea Semanal de su equipo, o solo el agregado?</li><li>¿Se necesita un rol comercial separado de admin para manejar oportunidades y ventas?</li></ul></div>
+
+        <h3 class="detalle-h">Lo que hace falta en esta fase</h3>
+        <div class="hf-wrap"><ul><li>Las otras 12 fases siguen sin detalle -solo tienen titulo-, les falta lo mismo que ya se le dio a la Fase 01.</li><li>Dos decisiones sin resolver dentro de esta misma fase: si el lider ve el detalle de Tarea Semanal de su equipo o solo el agregado, y si hace falta un rol comercial aparte de admin.</li><li>Decision pendiente sobre el registro de tiempo: captura manual (precisa, requiere disciplina) o estimacion automatica desde sesiones de Claude Code (cero friccion, subestima).</li><li>El scaffolding en si no se ha detallado -el titulo dice base de datos y scaffolding, pero solo se desarrollo la base de datos.</li><li>No hay dependencias explicitas entre fases -por ejemplo, la Fase 09 necesita que la Fase 06 ya este funcionando.</li><li>Falta aclarar la diferencia entre las 9 etapas de un proyecto cualquiera y estas 13 fases de construccion del CRM -son dos sistemas distintos.</li><li>No hay un criterio de cierre por fase, como si lo tienen las 9 etapas (el 'sale con'). Sin eso es dificil saber cuando una fase esta realmente terminada.</li></ul></div>
+      </div>
+      </div>
+      <div class="fase fase-detallada">
+        <div class="fase-head">
+          <span class="fase-num">02</span>
+          <h2>Núcleo de captura: proyectos, personas y equipo</h2>
+          <span class="fase-tag fase-tag-pend">Pendiente</span>
+        </div>
+        
+      <div class="detalle">
+        <h3 class="detalle-h" style="margin-top:0;border-top:none;padding-top:0">Lo que hace falta, en orden</h3>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin:-6px 0 14px;max-width:60ch">
+          Se deja marcado aquí de forma temporal. Progreso guardado en este navegador — se puede ir
+          chuleando a medida que se completa cada paso, una vez cerrada la Fase 01.
+        </p>
+        <div class="hf-checklist" id="fase2-checklist">
+      <label class="hf-check-row">
+        <input type="checkbox" class="hf-check" data-id="fase2-1">
+        <span class="hf-box"></span>
+        <span class="hf-text">Ejecutar el esquema de base de datos (Fase 01) - crear las tablas de verdad en Supabase.</span>
+      </label>
+      <label class="hf-check-row">
+        <input type="checkbox" class="hf-check" data-id="fase2-2">
+        <span class="hf-box"></span>
+        <span class="hf-text">Configurar autenticación real (Supabase Auth) para que las sesiones de usuario sean reales, no un texto fijo.</span>
+      </label>
+      <label class="hf-check-row">
+        <input type="checkbox" class="hf-check" data-id="fase2-3">
+        <span class="hf-box"></span>
+        <span class="hf-text">Construir el backend que valida y guarda cada formulario (proyectos, personas, miembros_proyecto).</span>
+      </label>
+      <label class="hf-check-row">
+        <input type="checkbox" class="hf-check" data-id="fase2-4">
+        <span class="hf-box"></span>
+        <span class="hf-text">Reconstruir el frontend conectado a datos reales, usando el prototipo visual como referencia de diseño.</span>
+      </label>
+        </div>
+      </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">03</span>
+          <h2>Etapas, checklist y tareas semanales</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">04</span>
+          <h2>Registro de tiempo y dedicación</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">05</span>
+          <h2>Conexión con GitHub</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">06</span>
+          <h2>Telemetría de proyectos y agentes</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">07</span>
+          <h2>Motor de indicadores</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">08</span>
+          <h2>Agentes: analista, alertas y verificación</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">09</span>
+          <h2>Panel de agentes: Loop, Harness y Graph</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">10</span>
+          <h2>Capa comercial y proyección de ventas</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">11</span>
+          <h2>Dashboard con activación progresiva</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">12</span>
+          <h2>Pruebas y piloto</h2>
+        </div>
+      </div>
+      <div class="fase">
+        <div class="fase-head">
+          <span class="fase-num">13</span>
+          <h2>Producción interna y operación</h2>
+        </div>
+      </div>
+  </div>
+
+  <section class="rls2-wrap"><div class="wrap"><span class="rls2-eyebrow">Seguridad y acceso</span><h2 class="rls2-title">Tener en cuenta para las políticas RLS</h2><p class="rls2-intro">Análisis por tipo de tabla, porque el patrón de acceso cambia según de dónde vienen los datos.</p><h3 class="rls2-h1">Por tipo de tabla</h3><div class="rls2-grid"><div class="rls2-bloque" style="--accent:#A23B3B"><h3>Tablas de solo-sistema</h3><p class="rls2-sub">commits · pull_requests · sesiones_claude_code · trazas_agente · indicador_snapshots · tarea_evidencia</p><div class="rls2-puntos"><div class="rls2-punto"><span class="rls2-punto-label">Escritura</span><p>Solo service_role (los agentes de ingesta). Ningun usuario, ni admin, puede insertar aqui.</p></div><div class="rls2-punto"><span class="rls2-punto-label">Lectura</span><p>Segun a quien pertenece el dato (ver reglas de Datos propios y Datos de proyecto).</p></div><div class="rls2-punto"><span class="rls2-punto-label">Por que importa</span><p>Si un usuario pudiera insertar en commits, podria fabricarse actividad. La integridad de todo el catalogo depende de que estas tablas sean de escritura exclusiva del sistema.</p></div></div></div><div class="rls2-bloque" style="--accent:#8A6D1F"><h3>Tablas de catálogo</h3><p class="rls2-sub">indicador_catalogo · indicador_aplicabilidad · indicador_madurez · canales_venta · eval_cases</p><div class="rls2-puntos"><div class="rls2-punto"><span class="rls2-punto-label">Lectura</span><p>Todos los usuarios autenticados - necesitan saber que significa cada indicador.</p></div><div class="rls2-punto"><span class="rls2-punto-label">Escritura</span><p>Solo admin.</p></div></div></div><div class="rls2-bloque" style="--accent:#3A6EA5"><h3>Datos propios de la persona</h3><p class="rls2-sub">registro_tiempo · tareas_semanales</p><div class="rls2-puntos"><div class="rls2-punto"><span class="rls2-punto-label">Colaborador</span><p>Lee y escribe solo sus propias filas (persona_id = auth.uid()).</p></div><div class="rls2-punto"><span class="rls2-punto-label">Ventana de edición</span><p>Se recomienda un limite de 7 dias para editar un registro de tiempo pasado. Despues queda inmutable, o los indicadores historicos cambian retroactivamente y dejan de ser confiables.</p></div></div></div><div class="rls2-bloque" style="--accent:#2F7D5B"><h3>Datos de proyecto</h3><p class="rls2-sub">proyectos · miembros_proyecto · componentes_proyecto · puntos_componente · hitos · checklist_items · historial_etapas · bloqueos · implementaciones · candidatos_alcance · repositorios</p><div class="rls2-puntos"><div class="rls2-punto"><span class="rls2-punto-label">Colaborador</span><p>Lee solo proyectos donde es miembro. Escribe en checklist_items, puntos_componente y bloqueos de esos proyectos.</p></div><div class="rls2-punto"><span class="rls2-punto-label">Líder</span><p>Todo lo anterior en sus proyectos, mas crear/editar el proyecto, gestionar miembros y aprobar candidatos de alcance.</p></div><div class="rls2-punto"><span class="rls2-punto-label">Admin</span><p>Todo.</p></div></div></div><div class="rls2-bloque" style="--accent:#6B4E9E"><h3>Comercial — el más restringido</h3><p class="rls2-sub">clientes · productos · ventas · leads · oportunidades</p><div class="rls2-puntos"><div class="rls2-punto"><span class="rls2-punto-label">Acceso</span><p>Solo admin. Colaboradores y lideres no ven montos, margenes ni pipeline.</p></div><div class="rls2-punto"><span class="rls2-punto-label">Por qué</span><p>Es informacion sensible del negocio y ninguno de los indicadores que ellos usan la necesita.</p></div></div></div><div class="rls2-bloque" style="--accent:#445C99"><h3>Auditoría</h3><p class="rls2-sub">auditoria_log</p><div class="rls2-puntos"><div class="rls2-punto"><span class="rls2-punto-label">Acceso</span><p>Lectura y escritura solo service_role, mas lectura para admin.</p></div><div class="rls2-punto"><span class="rls2-punto-label">Regla clave</span><p>Nadie puede borrar sus propias entradas - si un admin pudiera editarlo, el log no sirve de nada.</p></div></div></div></div><h3 class="rls2-h1">Los tres puntos delicados que quedan sin resolver</h3><div class="rls2-delicados"><div class="rls2-delicado"><h4>A. Los indicadores personales del compañero</h4><p>Con solo dos personas, esta es la politica mas sensible de todas. Si un admin puede ver los indicador_snapshots personales de su compañero, hay asimetria - uno mide al otro. Tres opciones: cada quien ve solo los suyos (simetrico pero limita al admin); ambos ven los de ambos (transparencia total, requiere confianza explicita); o solo se ven agregados de empresa, nunca por persona. Es una decision de cultura, no tecnica - pero se implementa en RLS y conviene decidirla antes de escribir la primera politica.</p></div><div class="rls2-delicado"><h4>B. El detalle de Tarea Semanal</h4><p>Ya se marco como pendiente en la Fase 01. Si el lider ve el detalle de cumplimiento de cada persona, el sistema empieza a sentirse vigilancia - justo lo que se queria evitar al diseñarlo automatico.</p></div><div class="rls2-delicado"><h4>C. RLS en tablas derivadas es dificil de hacer bien</h4><p>indicador_snapshots tiene scope_type + scope_id genericos. La politica tiene que resolver 'si scope_type es persona, comparar con auth.uid(); si es proyecto, verificar membresia'. Es mas complejo que un simple user_id = auth.uid() y es donde mas facil se cuela un error de permisos.</p></div></div><div class="rls2-reco"><span class="rls2-reco-label">Recomendación práctica</span><p>Empezar con RLS <b>restrictivo por defecto</b> (denegar todo, abrir explícitamente), y para los puntos A y B, decidir primero cómo quieren trabajar los dos, y después escribir la política. Al revés no funciona.</p></div></div></section>
+
+  <footer>
+    <div class="wrap">
+    Documento vivo — el detalle de cada fase se va agregando a medida que se cierra su planeación.
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  const FASE2_KEY = 'hellominus-fase2-checklist';
+  let fase2State = {};
+
+  async function fase2Load() {
+    try {
+      const r = await window.storage.get(FASE2_KEY, false);
+      if (r && r.value) fase2State = JSON.parse(r.value);
+    } catch (err) { fase2State = {}; }
+    document.querySelectorAll('.hf-check').forEach(cb => {
+      cb.checked = !!fase2State[cb.dataset.id];
+    });
+  }
+
+  async function fase2Save() {
+    try { await window.storage.set(FASE2_KEY, JSON.stringify(fase2State), false); }
+    catch (err) { console.error('No se pudo guardar', err); }
+  }
+
+  document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('hf-check')) {
+      fase2State[e.target.dataset.id] = e.target.checked;
+      fase2Save();
+    }
+  });
+
+  fase2Load();
+</script>
+</body>
+</html>

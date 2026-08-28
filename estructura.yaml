@@ -1,0 +1,58 @@
+# Manifiesto de la estructura full stack.
+# Cada carpeta lleva un "para" que describe qué va adentro.
+# Ese texto aparece en el archivo marcador cuando la carpeta está vacía.
+#
+# Para adaptar el skill a otro proyecto: editar solo este archivo.
+#
+# Se corre con:
+#   python <ruta-al-skill>/scripts/estructura.py crear   --manifiesto estructura.yaml
+#   python <ruta-al-skill>/scripts/estructura.py revisar --manifiesto estructura.yaml
+
+proyecto: CRM Productividad Hello-Minus
+
+carpetas:
+  - ruta: docs
+    para: Documentación de negocio y técnica (CONTEXT.md, indicadores del dashboard, notas de decisiones, capturas de referencia)
+
+  - ruta: db
+    para: Todo lo relacionado con la base de datos — 000_schema_inicial.sql (Supabase/Postgres) y README.md con el orden de ejecución viven acá
+  - ruta: db/migrations
+    para: Migraciones incrementales del schema, en orden cronológico (a partir de 000_schema_inicial.sql)
+  - ruta: db/policies
+    para: Políticas RLS, en archivos separados del schema y de las migraciones (STACK.md lo exige) — RLS obligatorio desde el primer día
+
+  - ruta: backend
+    para: Capa de servidor completa
+  - ruta: backend/api
+    para: App Node.js + Express — capa delgada sobre Supabase, CORS explícito y acotado. Solo la lógica que Supabase no resuelve por sí solo
+  - ruta: backend/api/routes
+    para: Routers de Express por dominio (tareas/productividad, conversaciones/inbox, reportes)
+  - ruta: backend/api/middleware
+    para: Middleware compartido (verificación de sesión Supabase, CORS, manejo de errores)
+  - ruta: backend/functions
+    para: Edge Functions de Supabase — webhooks e integraciones de canales de mensajería para el inbox unificado (recepción de mensajes entrantes, normalización, alta del registro)
+  - ruta: backend/agent
+    para: Agente Claude aislado (@anthropic-ai/sdk) — system_prompt.md, output_schema.json (Structured Outputs), client.ts y parser.ts. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt
+
+  - ruta: frontend
+    para: Capa de cliente completa
+  - ruta: frontend/dashboard
+    para: App React + Vite con la landing pública y el dashboard tras login
+  - ruta: frontend/dashboard/src
+    para: Código fuente de la app
+  - ruta: frontend/dashboard/src/pages
+    para: Páginas de nivel superior (Landing, Dashboard de reportes, Tablero de tareas/productividad, Inbox de conversaciones)
+  - ruta: frontend/dashboard/src/components
+    para: Componentes reutilizables de UI (tarjetas de tarea, hilo de conversación, filtros, tiles de indicadores)
+  - ruta: frontend/dashboard/src/charts
+    para: Wrappers de Recharts para los indicadores del dashboard (productividad por asesor, volumen de conversaciones, tareas cumplidas vs. vencidas)
+  - ruta: frontend/dashboard/src/hooks
+    para: Hooks de React, incluyendo la suscripción a Supabase Realtime (mensajes entrantes, cambios de estado de tareas)
+  - ruta: frontend/dashboard/src/lib
+    para: Clientes y utilidades compartidas (supabaseClient, helpers de fecha/formato)
+  - ruta: frontend/dashboard/src/services
+    para: Funciones async simples para llamadas a Supabase y APIs externas, un archivo por sistema externo (STACK.md lo exige) — authService, tareasService, conversacionesService, reportesService
+  - ruta: frontend/dashboard/src/stores
+    para: Stores de Zustand, un dominio por archivo, sin middleware salvo justificación puntual — authStore, tareasStore, inboxStore, themeStore
+  - ruta: frontend/dashboard/public
+    para: Assets estáticos servidos tal cual

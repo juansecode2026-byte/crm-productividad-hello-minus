@@ -18,8 +18,10 @@ anterior ya corrió.
 | 1 | `000_schema_inicial.sql` | Tipos, 32 tablas, índices. Habilita RLS en todas. |
 | 2 | `policies/001_baseline.sql` | Schema `private`, funciones auxiliares y 61 políticas RLS. |
 | 3 | `migrations/001_vincular_auth_y_catalogos.sql` | Trigger de vinculación con Auth + catálogos base. |
-| 4 | `migrations/002_seed_personas.sql` | Los dos integrantes. **Datos provisionales.** |
-| 5+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 4 | `migrations/002_seed_personas.sql` | Los dos integrantes. Placeholder, reemplazado por el paso 5. |
+| 5 | `migrations/003_actualizar_personas_reales.sql` | Datos reales de los dos integrantes. Aplicado 2026-09-15. |
+| 6 | `migrations/004_funciones_proyectos.sql` | `crear_proyecto`, `cambiar_etapa_proyecto` y un solo miembro activo por proyecto. Aplicado 2026-09-15. |
+| 7+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base
@@ -120,10 +122,10 @@ queda huérfana y sus indicadores individuales salen vacíos.
 
 ## Pendiente
 
-- **Reemplazar los datos provisionales de `personas`.** Las dos filas actuales
-  tienen emails `.invalid` y `github_username` en NULL: la base sigue cerrada
-  hasta que se pongan los reales. Instrucciones al pie de
-  `migrations/002_seed_personas.sql`.
+- **Que los dos integrantes se registren en Supabase Auth** con su email real
+  (`juansecode2026@gmail.com` y `monkeyotbz@gmail.com`) para que el trigger de
+  `001_vincular_auth_y_catalogos.sql` los enlace. Hasta entonces
+  `private.persona_actual()` devuelve `NULL` y RLS los deja afuera.
 - Decidir si hace falta un **rol comercial** separado de admin.
 - Decidir el origen del **registro de tiempo**: captura manual (precisa, exige
   disciplina) o estimación automática desde sesiones de Claude Code (cero

@@ -53,6 +53,41 @@ secundaria. Documentación de diseño en [docs/](docs/).
   `trazas_agente`, `indicador_snapshots`, `tarea_evidencia`, `auditoria_log`):
   se leen pero ningún usuario las escribe; la ingesta usa `service_role`.
 
+## Backend — API de escritura (`backend/api/`)
+
+Express 5 + TypeScript + Zod. Cubre la Fase 02: formularios de proyectos,
+miembros y personas.
+
+- **Lecturas: el frontend va directo a Supabase** con la sesión del usuario;
+  RLS decide qué ve. La API no tiene rutas GET de datos, porque solo
+  reenviarían a Supabase.
+- **Escrituras con lógica pasan por la API.** Cada petición trae
+  `Authorization: Bearer <access_token de Supabase>`; la API verifica el JWT
+  (`getClaims`) y consulta con un cliente que lleva ese token, así que RLS
+  sigue aplicando. **La API nunca usa `service_role`.**
+- Lo que tiene que ser atómico vive en Postgres
+  (`db/migrations/004_funciones_proyectos.sql`), porque supabase-js no tiene
+  transacciones: `crear_proyecto` y `cambiar_etapa_proyecto`.
+
+| Método y ruta | Regla que agrega |
+|---|---|
+| `POST /proyectos` | Crea proyecto + historial de etapa + encargado como miembro `lider`. Alta en etapa ≥ 3 congela el alcance en ese momento |
+| `PATCH /proyectos/:id` | Fechas coherentes, encargado activo. No acepta `etapa_actual`, `alcance_congelado_en` ni `creado_por` |
+| `POST /proyectos/:id/etapa` | Cierra la etapa abierta, abre la nueva; pasar la Etapa 2 congela el alcance y volver atrás no lo descongela |
+| `POST /proyectos/:id/miembros` | Persona activa, una sola membresía activa por proyecto |
+| `PATCH /proyectos/:id/miembros/:miembroId` | Solo miembros activos: el historial de quien salió no se edita |
+| `POST /proyectos/:id/miembros/:miembroId/salida` | No hay DELETE: se registra `fecha_salida` |
+| `POST /personas` · `PATCH /personas/:id` | Solo admin (RLS). Nunca deja la base sin un admin activo |
+
+Errores: `{ "error": { "mensaje", "detalles"? } }` — 400 validación, 401
+sesión, 403 permiso, 404, 409 duplicado, 422 regla de negocio.
+
+**Correr local:** `cd backend/api && npm install`, crear `backend/api/.env`
+con la sección Backend de `.env.example`, y `npm run dev`.
+
+**Tras cada migración**, regenerar `backend/api/database.types.ts` (MCP de
+Supabase `generate_typescript_types`) y correr `npm run typecheck`.
+
 ## Base de datos
 
 Supabase, proyecto **`qutqsyokdlitflybfrus`** (`crm-productividad-hello-minus`).
@@ -67,14 +102,15 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 | `VITE_SUPABASE_URL` / `SUPABASE_URL` | `https://qutqsyokdlitflybfrus.supabase.co` | fijo |
 | `VITE_SUPABASE_ANON_KEY` / `SUPABASE_ANON_KEY` | Cliente Supabase (frontend y backend). Publishable key, respeta RLS. | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Solo backend / agentes de ingesta. Salta RLS. Nunca en el frontend ni en el repo. | Supabase → Settings → API |
-| `CORS_ORIGINS` | Orígenes permitidos por el backend, coma-separados. Nunca `*`. | config |
+| `CORS_ORIGINS` | Orígenes permitidos por el backend, coma-separados. Nunca `*` (la API no arranca si lo tiene). | config |
+| `PORT` | Puerto de la API. Opcional, por defecto `3001`. | config |
 | `ANTHROPIC_API_KEY` | Features conversacionales / evaluación con Claude. | consola de Anthropic |
 
 ## Pendiente / en decisión
 
-- **Poner los datos reales de los dos integrantes en `personas`.** Las filas
-  existen pero con emails `.invalid` y `github_username` en NULL: hasta que se
-  corrijan y cada quien se registre en Auth con ese mismo email, RLS deja la
+- **Que los dos integrantes se registren en Supabase Auth.** `personas` ya
+  tiene los datos reales (2026-09-15); falta que cada quien cree su cuenta con
+  ese mismo email para que el trigger los enlace. Hasta entonces RLS deja la
   base cerrada. Ver [db/README.md](db/README.md).
 - Rol comercial separado de admin: ¿hace falta?
 - Origen del registro de tiempo: manual vs. inferido desde sesiones de Claude Code.

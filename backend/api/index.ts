@@ -1,0 +1,28 @@
+import express from 'express';
+import { config } from './config.js';
+import { exigirSesion } from './middleware/autenticacion.js';
+import { corsAcotado } from './middleware/cors.js';
+import { manejarErrores, rutaNoEncontrada } from './middleware/errores.js';
+import { personas } from './routes/personas.js';
+import { proyectos } from './routes/proyectos.js';
+
+const app = express();
+
+app.disable('x-powered-by');
+app.use(corsAcotado);
+app.use(express.json({ limit: '100kb' }));
+
+app.get('/salud', (_req, res) => {
+  res.json({ estado: 'ok' });
+});
+
+app.use('/proyectos', exigirSesion, proyectos);
+app.use('/personas', exigirSesion, personas);
+
+app.use(rutaNoEncontrada);
+app.use(manejarErrores);
+
+app.listen(config.PORT, (error) => {
+  if (error) throw error;
+  console.log(`API escuchando en el puerto ${config.PORT}`);
+});

@@ -1,6 +1,6 @@
 # Estructura del proyecto — CRM Productividad Hello-Minus
 
-**Avance:** 4 de 21 carpetas con contenido.
+**Avance:** 8 de 21 carpetas con contenido.
 
 Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 
@@ -10,12 +10,12 @@ Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 | ✅ | `db/` | Todo lo relacionado con la base de datos — 000_schema_inicial.sql (Supabase/Postgres) y README.md con el orden de ejecución viven acá |
 | ✅ | `db/migrations/` | Migraciones incrementales del schema, en orden cronológico (a partir de 000_schema_inicial.sql) |
 | ✅ | `db/policies/` | Políticas RLS, en archivos separados del schema y de las migraciones (STACK.md lo exige) — RLS obligatorio desde el primer día |
-| ⬜ | `backend/` | Capa de servidor completa |
-| ⬜ | `backend/api/` | App Node.js + Express — capa delgada sobre Supabase, CORS explícito y acotado. Solo la lógica que Supabase no resuelve por sí solo |
-| ⬜ | `backend/api/routes/` | Routers de Express por dominio (tareas/productividad, conversaciones/inbox, reportes) |
-| ⬜ | `backend/api/middleware/` | Middleware compartido (verificación de sesión Supabase, CORS, manejo de errores) |
+| ✅ | `backend/` | Capa de servidor completa |
+| ✅ | `backend/api/` | App Node.js + Express — capa delgada sobre Supabase, CORS explícito y acotado. Solo la lógica que Supabase no resuelve por sí solo |
+| ✅ | `backend/api/routes/` | Routers de Express por dominio (tareas/productividad, conversaciones/inbox, reportes) |
+| ✅ | `backend/api/middleware/` | Middleware compartido (verificación de sesión Supabase, CORS, manejo de errores) |
 | ⬜ | `backend/functions/` | Edge Functions de Supabase — webhooks e integraciones de canales de mensajería para el inbox unificado (recepción de mensajes entrantes, normalización, alta del registro) |
-| ⬜ | `backend/agent/` | Agente Claude aislado (@anthropic-ai/sdk) — system_prompt.md, output_schema.json (Structured Outputs), client.ts y parser.ts. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt |
+| ⬜ | `backend/agent/` | Servicio Python aparte (claude_agent_sdk / anthropic), al que Express llama — system_prompt.md, output_schema.json (Structured Outputs) y el cliente que arma la llamada. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt. Ver DECISIONES.md [D1] |
 | ⬜ | `frontend/` | Capa de cliente completa |
 | ⬜ | `frontend/dashboard/` | App React + Vite con la landing pública y el dashboard tras login |
 | ⬜ | `frontend/dashboard/src/` | Código fuente de la app |

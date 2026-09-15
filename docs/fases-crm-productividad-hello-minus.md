@@ -131,7 +131,7 @@ actualizado: 2026-08-28 (v2 — 32 tablas, 9 bloques, sección RLS ampliada)
 
 Se deja marcado aquí de forma temporal. Se puede ir chuleando a medida que se completa cada paso, una vez cerrada la Fase 01.
 
-- [ ] Ejecutar el esquema de base de datos (Fase 01) — crear las tablas de verdad en Supabase.
+- [x] Ejecutar el esquema de base de datos (Fase 01) — crear las tablas de verdad en Supabase.
 - [ ] Configurar autenticación real (Supabase Auth) para que las sesiones de usuario sean reales, no un texto fijo.
 - [ ] Construir el backend que valida y guarda cada formulario (proyectos, personas, `miembros_proyecto`).
 - [ ] Reconstruir el frontend conectado a datos reales, usando el prototipo visual como referencia de diseño.

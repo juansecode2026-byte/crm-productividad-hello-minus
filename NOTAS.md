@@ -64,3 +64,55 @@ Lo importante es que quede, no que esté bien redactado.
   prosa, y reportaba como faltante un archivo que existe con otra ruta. Se
   acotó a las filas de la tabla de orden. Lección chica pero repetible: un
   verificador que grita en falso se termina ignorando.
+
+## 2026-09-15
+
+- **`restore_project` sobre un proyecto pausado por inactividad no queda listo
+  al instante.** Justo después de reactivarlo, `list_tables` y
+  `list_migrations` devolvieron vacío y un `UPDATE` sobre `personas` falló con
+  "relation does not exist" — parecía que se había perdido toda la base. No
+  era así: el proyecto seguía en estado `COMING_UP` y esas respuestas eran
+  transitorias, no el estado real. Se diagnosticó mal como pérdida de datos y
+  se re-aplicaron `000_schema_inicial.sql` y `policies/001_baseline.sql`
+  contra una base que en realidad seguía completa; no rompió nada solo porque
+  esos dos archivos fallan limpio ante objetos que ya existen (el resto de las
+  migraciones sí son idempotentes a propósito — `create or replace`,
+  `on conflict do nothing` — y por eso corrieron dos veces sin daño, aunque
+  dejaron temporalmente 4 filas en `personas` en vez de 2, hasta que se
+  detectó y se borraron los placeholders). **Lección: esperar a `status:
+  ACTIVE_HEALTHY` (`get_project`) antes de asumir que una base recién
+  restaurada está realmente vacía.**
+- **Los dos integrantes reales quedaron cargados en `personas`** (Juan
+  Sebastian Correa Ramírez como admin, Gabriel Carvajal como colaborador) vía
+  `db/migrations/003_actualizar_personas_reales.sql`. Falta que cada uno se
+  registre en Supabase Auth con su email real para que el trigger los enlace.
+
+- **Probar funciones con RLS sin dejar rastro: bloque `DO` que termina en
+  `raise exception`.** Adentro se crean personas y usuarios de Auth de prueba,
+  se hace `set local role authenticated` + `request.jwt.claims`, se ejercitan
+  las reglas y el resultado sale en el mensaje de la excepción. La excepción
+  garantiza el rollback aunque la herramienta no respete un `ROLLBACK`
+  explícito. Usar emails `.invalid`: un usuario de Auth de prueba con un email
+  real quedaría enlazado y bloquearía el registro verdadero.
+- **`getClaims` de supabase-js lanza (no devuelve `error`) si el token no se
+  puede decodificar.** Un `Bearer abc.def.ghi` daba 500 en vez de 401. Se
+  envolvió en try/catch.
+- **En Windows, detener la tarea en segundo plano no mata el `node` hijo de
+  `npx tsx`.** El puerto quedó ocupado y el reinicio falló con `EADDRINUSE`.
+  Hubo que buscar el proceso por puerto y cerrarlo a mano.
+- **Hallazgo de RLS, corregido:** la política `gobernar_proyectos` usaba
+  `lidera_proyecto(id)` también para INSERT, y durante el insert el proyecto
+  todavía no existe, así que daba falso siempre — en la práctica solo el admin
+  podía crear proyectos, aunque la Fase 01 dice que el líder también. Se
+  reemplazó por tres políticas separadas
+  (`db/policies/002_crear_proyecto_como_encargado.sql`): crear exige ser
+  admin o quedar como `encargado_id` y `creado_por` del proyecto que se crea;
+  editar y borrar siguen igual que antes (admin o `lidera_proyecto`).
+  **Lección: `FOR ALL` con una condición que lee la fila (`lidera_proyecto`
+  hace `select ... where p.id = ...`) no sirve para INSERT — ahí la fila
+  todavía no existe. Separar INSERT del resto cuando la condición depende de
+  la fila.**
+- **`estructura.yaml` tenía una contradicción con `DECISIONES.md` [D1].**
+  Describía `backend/agent/` con `@anthropic-ai/sdk` (Node), pero el proyecto
+  ya había decidido Python para todo lo que llama a Claude. Corregido en el
+  manifiesto y regenerado el marcador.

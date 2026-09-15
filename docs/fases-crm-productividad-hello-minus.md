@@ -132,9 +132,9 @@ actualizado: 2026-08-28 (v2 — 32 tablas, 9 bloques, sección RLS ampliada)
 Se deja marcado aquí de forma temporal. Se puede ir chuleando a medida que se completa cada paso, una vez cerrada la Fase 01.
 
 - [x] Ejecutar el esquema de base de datos (Fase 01) — crear las tablas de verdad en Supabase.
-- [ ] Configurar autenticación real (Supabase Auth) para que las sesiones de usuario sean reales, no un texto fijo.
-- [ ] Construir el backend que valida y guarda cada formulario (proyectos, personas, `miembros_proyecto`).
-- [ ] Reconstruir el frontend conectado a datos reales, usando el prototipo visual como referencia de diseño.
+- [x] Configurar autenticación real (Supabase Auth) — `frontend/dashboard` ya registra e inicia sesión contra Auth de verdad. Falta que los dos integrantes se registren de hecho.
+- [x] Construir el backend que valida y guarda cada formulario (proyectos, `miembros_proyecto`; `personas` cubre alta y edición). Ver CLAUDE.md, sección Backend.
+- [x] Reconstruir el frontend conectado a datos reales — provisional (login, alta y listado de proyectos), sin prototipo visual de referencia porque no existe ninguno todavía. Diseño y branding quedan pendientes (ver CLAUDE.md, Pendiente).
 
 ---
 

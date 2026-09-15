@@ -1,0 +1,56 @@
+/*
+  Paleta neutra provisional: el branding de Hello Minus todavía se está
+  estudiando (ver CLAUDE.md). Cuando se defina, se cambia solo acá.
+*/
+:root {
+  --color-bg: #ffffff;
+  --color-bg-sutil: #f4f5f7;
+  --color-borde: #d7dbe0;
+  --color-texto: #151e27;
+  --color-texto-tenue: #5b6b79;
+  --color-accento: #2b4ee6;
+  --color-accento-oscuro: #1d38b0;
+  --color-error: #b3261e;
+  --color-error-fondo: #fdeceb;
+
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+
+  --radio: 6px;
+  --fuente: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #12161b;
+    --color-bg-sutil: #1b2129;
+    --color-borde: #2c333c;
+    --color-texto: #e8ecf0;
+    --color-texto-tenue: #9aa7b2;
+    --color-accento: #6d8bff;
+    --color-accento-oscuro: #4f6bdb;
+    --color-error: #ff6f66;
+    --color-error-fondo: #3a1917;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente);
+  background: var(--color-bg-sutil);
+  color: var(--color-texto);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

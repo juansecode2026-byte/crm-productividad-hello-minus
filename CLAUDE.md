@@ -88,6 +88,27 @@ con la sección Backend de `.env.example`, y `npm run dev`.
 **Tras cada migración**, regenerar `backend/api/database.types.ts` (MCP de
 Supabase `generate_typescript_types`) y correr `npm run typecheck`.
 
+## Frontend — dashboard (`frontend/dashboard/`)
+
+React + Vite + TypeScript + Zustand + CSS Modules. **Provisional a propósito:**
+cubre login/registro y el alta de proyectos para poder usar el CRM ya, sin
+esperar a definir branding — paleta neutra en `src/lib/tokens.css`, para
+reemplazar cuando se estudie el diseño (ver Pendiente).
+
+- **Auth:** `Login.tsx` registra e inicia sesión directo contra Supabase Auth
+  (`supabase.auth.signUp` / `signInWithPassword`). Es la forma real de que los
+  dos integrantes entren al sistema — reemplaza invitarlos a mano desde el
+  dashboard de Supabase.
+- **Lecturas:** `services/` consulta Supabase directo con la sesión del
+  usuario; RLS decide qué ve.
+- **Escrituras con lógica:** pasan por `backend/api/` (`VITE_API_URL`), con
+  `Authorization: Bearer <access_token>`.
+
+**Correr local:** `cd frontend/dashboard && npm install`, crear
+`frontend/dashboard/.env` con la sección Frontend de `.env.example`
+(+ `VITE_API_URL`), y `npm run dev`. Necesita la API corriendo en paralelo
+para crear proyectos.
+
 ## Base de datos
 
 Supabase, proyecto **`qutqsyokdlitflybfrus`** (`crm-productividad-hello-minus`).
@@ -107,6 +128,11 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 | `ANTHROPIC_API_KEY` | Features conversacionales / evaluación con Claude. | consola de Anthropic |
 
 ## Pendiente / en decisión
+
+- **Branding y diseño del dashboard.** `frontend/dashboard` es funcional pero
+  provisional a propósito — paleta neutra, sin identidad visual — mientras se
+  estudia el branding de Hello Minus. Cuando se defina, usar el skill
+  `criterios-ux-ui` y actualizar `src/lib/tokens.css`.
 
 - **Que los dos integrantes se registren en Supabase Auth.** `personas` ya
   tiene los datos reales (2026-09-15); falta que cada quien cree su cuenta con

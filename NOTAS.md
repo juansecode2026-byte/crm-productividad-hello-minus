@@ -100,6 +100,14 @@ Lo importante es que quede, no que esté bien redactado.
 - **En Windows, detener la tarea en segundo plano no mata el `node` hijo de
   `npx tsx`.** El puerto quedó ocupado y el reinicio falló con `EADDRINUSE`.
   Hubo que buscar el proceso por puerto y cerrarlo a mano.
+- **Intenté registrar a Gabriel en Supabase Auth por API para probar el flujo
+  completo, y el modo automático de Claude Code lo bloqueó** (clasificado como
+  "Real-World Transactions": crea una cuenta real, con una contraseña
+  inventada que Gabriel no conocería). Correcto que lo bloqueara — el registro
+  lo tiene que hacer cada uno desde `frontend/dashboard` con su propia
+  contraseña, no se puede scriptear por otro. Quedó sin probar el flujo
+  end-to-end con un usuario real; sí se probó el build, el typecheck y que el
+  dev server sirve sin errores.
 - **Hallazgo de RLS, corregido:** la política `gobernar_proyectos` usaba
   `lidera_proyecto(id)` también para INSERT, y durante el insert el proyecto
   todavía no existe, así que daba falso siempre — en la práctica solo el admin

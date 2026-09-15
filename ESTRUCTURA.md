@@ -1,6 +1,6 @@
 # Estructura del proyecto — CRM Productividad Hello-Minus
 
-**Avance:** 8 de 21 carpetas con contenido.
+**Avance:** 15 de 21 carpetas con contenido.
 
 Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 
@@ -16,16 +16,16 @@ Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 | ✅ | `backend/api/middleware/` | Middleware compartido (verificación de sesión Supabase, CORS, manejo de errores) |
 | ⬜ | `backend/functions/` | Edge Functions de Supabase — webhooks e integraciones de canales de mensajería para el inbox unificado (recepción de mensajes entrantes, normalización, alta del registro) |
 | ⬜ | `backend/agent/` | Servicio Python aparte (claude_agent_sdk / anthropic), al que Express llama — system_prompt.md, output_schema.json (Structured Outputs) y el cliente que arma la llamada. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt. Ver DECISIONES.md [D1] |
-| ⬜ | `frontend/` | Capa de cliente completa |
-| ⬜ | `frontend/dashboard/` | App React + Vite con la landing pública y el dashboard tras login |
-| ⬜ | `frontend/dashboard/src/` | Código fuente de la app |
-| ⬜ | `frontend/dashboard/src/pages/` | Páginas de nivel superior (Landing, Dashboard de reportes, Tablero de tareas/productividad, Inbox de conversaciones) |
+| ✅ | `frontend/` | Capa de cliente completa |
+| ✅ | `frontend/dashboard/` | App React + Vite con la landing pública y el dashboard tras login |
+| ✅ | `frontend/dashboard/src/` | Código fuente de la app |
+| ✅ | `frontend/dashboard/src/pages/` | Páginas de nivel superior (Landing, Dashboard de reportes, Tablero de tareas/productividad, Inbox de conversaciones) |
 | ⬜ | `frontend/dashboard/src/components/` | Componentes reutilizables de UI (tarjetas de tarea, hilo de conversación, filtros, tiles de indicadores) |
 | ⬜ | `frontend/dashboard/src/charts/` | Wrappers de Recharts para los indicadores del dashboard (productividad por asesor, volumen de conversaciones, tareas cumplidas vs. vencidas) |
 | ⬜ | `frontend/dashboard/src/hooks/` | Hooks de React, incluyendo la suscripción a Supabase Realtime (mensajes entrantes, cambios de estado de tareas) |
-| ⬜ | `frontend/dashboard/src/lib/` | Clientes y utilidades compartidas (supabaseClient, helpers de fecha/formato) |
-| ⬜ | `frontend/dashboard/src/services/` | Funciones async simples para llamadas a Supabase y APIs externas, un archivo por sistema externo (STACK.md lo exige) — authService, tareasService, conversacionesService, reportesService |
-| ⬜ | `frontend/dashboard/src/stores/` | Stores de Zustand, un dominio por archivo, sin middleware salvo justificación puntual — authStore, tareasStore, inboxStore, themeStore |
+| ✅ | `frontend/dashboard/src/lib/` | Clientes y utilidades compartidas (supabaseClient, helpers de fecha/formato) |
+| ✅ | `frontend/dashboard/src/services/` | Funciones async simples para llamadas a Supabase y APIs externas, un archivo por sistema externo (STACK.md lo exige) — authService, tareasService, conversacionesService, reportesService |
+| ✅ | `frontend/dashboard/src/stores/` | Stores de Zustand, un dominio por archivo, sin middleware salvo justificación puntual — authStore, tareasStore, inboxStore, themeStore |
 | ⬜ | `frontend/dashboard/public/` | Assets estáticos servidos tal cual |
 
 ✅ con contenido · ⬜ vacía, pendiente · ❌ no existe en disco

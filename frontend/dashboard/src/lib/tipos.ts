@@ -20,6 +20,20 @@ export interface Proyecto {
   etapa_actual: number;
   encargado_id: string | null;
   prioridad: number | null;
+  fecha_inicio: string | null;
   fecha_objetivo: string | null;
   alcance_congelado_en: string | null;
+}
+
+export interface RepoCandidato {
+  owner: string;
+  repo: string;
+  disponible: boolean;
+  ultimoCommit: string | null;
+  primerCommit: string | null;
+  commitsSemana: number;
+  commitsTotal: number;
+  commitsTruncado: boolean;
+  prsAbiertos: number;
+  colaboradores: string[];
 }

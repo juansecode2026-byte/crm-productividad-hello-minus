@@ -1,40 +1,84 @@
 /*
-  Paleta neutra provisional: el branding de Hello Minus todavía se está
-  estudiando (ver CLAUDE.md). Cuando se defina, se cambia solo acá.
+  Dirección "Consola" — elegida el 2026-09-16 entre 3 mockups (ver el CRM).
+  Oscura y densa por defecto, tipo Linear/Vercel. Reemplaza la paleta neutra
+  provisional anterior. Sigue sin ser branding final de Hello Minus.
 */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 :root {
-  --color-bg: #ffffff;
-  --color-bg-sutil: #f4f5f7;
-  --color-borde: #d7dbe0;
-  --color-texto: #151e27;
-  --color-texto-tenue: #5b6b79;
-  --color-accento: #2b4ee6;
-  --color-accento-oscuro: #1d38b0;
-  --color-error: #b3261e;
-  --color-error-fondo: #fdeceb;
+  --ink: #e6edf3;
+  --ink-2: #9fb0c0;
+  --ink-3: #7f91a4; /* AA fix 2026-09-16: #6b7d8f daba 4.22:1 sobre --panel */
+  --canvas: #0b0f14;
+  --panel: #111820;
+  --panel-2: #161f29;
+  --linea: #1e2a36;
+  --linea-fuerte: #2b3a49;
+  --acento: #37b3c4;
+  --acento-ink: #08161a;
+  --acento-tenue: #0e2a31;
+  --ok: #3fb27f;
+  --ok-tenue: #0f2a21;
+  --dormido: #5a6b7c;
+  --alerta: #d4a13c;
+  --alerta-tenue: #2e2413;
+  --error: #e5675c;
+  --error-tenue: #341513;
+
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
 
   --space-1: 8px;
   --space-2: 16px;
   --space-3: 24px;
   --space-4: 32px;
   --space-5: 48px;
-
   --radio: 6px;
-  --fuente: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radio-sm: 4px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #12161b;
-    --color-bg-sutil: #1b2129;
-    --color-borde: #2c333c;
-    --color-texto: #e8ecf0;
-    --color-texto-tenue: #9aa7b2;
-    --color-accento: #6d8bff;
-    --color-accento-oscuro: #4f6bdb;
-    --color-error: #ff6f66;
-    --color-error-fondo: #3a1917;
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --ink: #101820;
+    --ink-2: #4a5b6b;
+    --ink-3: #64758a; /* AA fix 2026-09-16: #7d8c9a daba 3.45:1 sobre --panel */
+    --canvas: #eef1f4;
+    --panel: #ffffff;
+    --panel-2: #f6f8fa;
+    --linea: #dbe2e8;
+    --linea-fuerte: #c3ced8;
+    --acento: #0f7d8c;
+    --acento-ink: #ffffff;
+    --acento-tenue: #e2f2f4;
+    --ok: #1c7c54;
+    --ok-tenue: #e4f2eb;
+    --dormido: #8b9aa8;
+    --alerta: #9a6f12;
+    --alerta-tenue: #fbf1dc;
+    --error: #b3261e;
+    --error-tenue: #fdeceb;
   }
+}
+
+:root[data-theme='light'] {
+  --ink: #101820;
+  --ink-2: #4a5b6b;
+  --ink-3: #64758a; /* AA fix 2026-09-16 */
+  --canvas: #eef1f4;
+  --panel: #ffffff;
+  --panel-2: #f6f8fa;
+  --linea: #dbe2e8;
+  --linea-fuerte: #c3ced8;
+  --acento: #0f7d8c;
+  --acento-ink: #ffffff;
+  --acento-tenue: #e2f2f4;
+  --ok: #1c7c54;
+  --ok-tenue: #e4f2eb;
+  --dormido: #8b9aa8;
+  --alerta: #9a6f12;
+  --alerta-tenue: #fbf1dc;
+  --error: #b3261e;
+  --error-tenue: #fdeceb;
 }
 
 * {
@@ -43,13 +87,16 @@
 
 body {
   margin: 0;
-  font-family: var(--fuente);
-  background: var(--color-bg-sutil);
-  color: var(--color-texto);
+  font-family: var(--sans);
+  font-size: 13px;
+  background: var(--canvas);
+  color: var(--ink);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

@@ -78,6 +78,17 @@ miembros y personas.
 | `PATCH /proyectos/:id/miembros/:miembroId` | Solo miembros activos: el historial de quien salió no se edita |
 | `POST /proyectos/:id/miembros/:miembroId/salida` | No hay DELETE: se registra `fecha_salida` |
 | `POST /personas` · `PATCH /personas/:id` | Solo admin (RLS). Nunca deja la base sin un admin activo |
+| `GET /repos/candidatos` | `repos_candidatos` menos lo que ya está en `repositorios`, con métricas reales leídas en vivo de la API pública de GitHub (`services/github.ts`) |
+| `POST /repos/vincular` | Crea el proyecto (`crear_proyecto`) y la fila en `repositorios` en un solo paso |
+
+**`repos_candidatos`** (tabla nueva, `db/migrations/005`) es la lista de vigilancia
+del admin — repos que interesa vincular, no un rastreo de toda una cuenta de
+GitHub. Se siembra a mano por ahora; agregarlo automático es un candidato
+aplazado en `DECISIONES.md`. El lector de `services/github.ts` **no usa la
+GitHub App ni requiere token** — pega directo a la API pública de GitHub, así
+que solo funciona con repos públicos. Repos privados (los tuyos, hoy) salen con
+`disponible: false` hasta configurar `GITHUB_TOKEN` (opcional, sube el límite
+de 60 a 5000 peticiones/hora y habilita leer privados propios).
 
 Errores: `{ "error": { "mensaje", "detalles"? } }` — 400 validación, 401
 sesión, 403 permiso, 404, 409 duplicado, 422 regla de negocio.
@@ -90,15 +101,31 @@ Supabase `generate_typescript_types`) y correr `npm run typecheck`.
 
 ## Frontend — dashboard (`frontend/dashboard/`)
 
-React + Vite + TypeScript + Zustand + CSS Modules. **Provisional a propósito:**
-cubre login/registro y el alta de proyectos para poder usar el CRM ya, sin
-esperar a definir branding — paleta neutra en `src/lib/tokens.css`, para
-reemplazar cuando se estudie el diseño (ver Pendiente).
+React + Vite + TypeScript + Zustand + CSS Modules. Dirección visual **"Consola"**
+(elegida el 2026-09-16 entre 3 mockups): oscura y densa, IBM Plex Sans/Mono,
+acento cian — barra lateral + tabla, no tarjetas. Sigue sin ser branding final
+de Hello Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.css`.
 
 - **Auth:** `Login.tsx` registra e inicia sesión directo contra Supabase Auth
   (`supabase.auth.signUp` / `signInWithPassword`). Es la forma real de que los
   dos integrantes entren al sistema — reemplaza invitarlos a mano desde el
   dashboard de Supabase.
+- **Alta de proyectos es por descubrimiento, no por formulario.** `Proyectos.tsx`
+  muestra los repos de `repos_candidatos` que todavía no tienen fila en
+  `repositorios` (ver Backend abajo), con sus métricas reales de GitHub. Vincular
+  uno crea el proyecto y el repo en un solo paso — la persona solo completa lo
+  que GitHub no puede saber: etapa actual, fecha de inicio real, encargado.
+- **`AppShell.tsx`** es el layout con barra lateral; las secciones que todavía
+  no existen (Equipo, Actividad, Indicadores, Ajustes) se muestran marcadas
+  "pronto", no como enlaces muertos. Tiene el selector de tema día/noche
+  (`stores/themeStore.ts`, persiste en `localStorage`).
+- **Equipo sin un único encargado.** `proyectos.encargado_id` es una sola
+  persona (lo exige RLS para gobernar el proyecto), pero un proyecto en
+  modalidad "Equipo" no tiene un dueño único de verdad. Al vincular en Equipo,
+  el formulario no pregunta encargado: `POST /repos/vincular` pone como
+  `encargado_id` a quien vincula (así pasa la política sin ser admin) y agrega
+  a **todas las demás personas activas** como miembros con rol `lider` —
+  las dos gobiernan el proyecto por igual. En Individual sigue preguntando.
 - **Lecturas:** `services/` consulta Supabase directo con la sesión del
   usuario; RLS decide qué ve.
 - **Escrituras con lógica:** pasan por `backend/api/` (`VITE_API_URL`), con
@@ -136,6 +163,30 @@ payload no los trae; hace falta la API con credenciales de la App), backfill
 del historial, `area_inferida`/`tipo_inferido` (Clasificador nocturno), y
 seguir un repo renombrado (se busca por nombre, no por id).
 
+## Canal 2 — Telemetría (`backend/functions/ingesta-telemetria/`)
+
+Edge Function de Supabase, mismo patrón que el receptor de GitHub (validación
+pura en `eventos.ts`, probable con Node sin desplegar). **Fase 06, parte 1 de 3.**
+
+- **URL:** `https://qutqsyokdlitflybfrus.supabase.co/functions/v1/ingesta-telemetria`
+- **Autenticación:** cabecera `X-API-Key` con una clave por proyecto. En
+  `claves_ingesta` solo vive el SHA-256 — la clave en claro se muestra una sola
+  vez al crearla (`POST /proyectos/:id/claves`) y no se puede recuperar.
+- **El `proyecto_id` sale de la clave, nunca del cuerpo:** una clave no puede
+  escribir telemetría de otro proyecto aunque lo intente.
+- **Dos tipos de evento**, hasta 500 por petición:
+  - `traza_agente` → `trazas_agente`. Requiere `run_id`.
+  - `sesion_claude_code` → `sesiones_claude_code`. Requiere `session_id` e
+    `inicio`; hace upsert por `session_id`, así una sesión se puede reportar
+    varias veces mientras avanza (crece `prompt_count`, al final llega `fin`).
+- **Atribución de personas:** el proyecto manda `persona` con un email o un
+  usuario de GitHub; se resuelve sin distinguir mayúsculas. Sin coincidencia la
+  sesión entra huérfana, igual que un commit sin autor conocido.
+
+Falta de la Fase 06: el paquete cliente `hello-minus-telemetry` (parte 2), la
+ruta de Claude Code vía OpenTelemetry (necesita colector intermedio, parte 2)
+y el Clasificador de commits (agente LLM en Python, parte 3).
+
 ## Base de datos
 
 Supabase, proyecto **`qutqsyokdlitflybfrus`** (`crm-productividad-hello-minus`).
@@ -153,6 +204,7 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 | `CORS_ORIGINS` | Orígenes permitidos por el backend, coma-separados. Nunca `*` (la API no arranca si lo tiene). | config |
 | `PORT` | Puerto de la API. Opcional, por defecto `3001`. | config |
 | `GITHUB_WEBHOOK_SECRET` | Firma de los webhooks de la GitHub App. **No va en `.env`**: es secreto de Edge Functions. Mismo valor en la App y en Supabase. | Se genera una vez; Supabase → Edge Functions → Secrets |
+| `GITHUB_TOKEN` | Backend, opcional. Sube el límite de la API pública de GitHub y permite leer repos privados propios en `GET /repos/candidatos`. | Personal access token, solo lectura |
 | `ANTHROPIC_API_KEY` | Features conversacionales / evaluación con Claude. | consola de Anthropic |
 
 ## Pendiente / en decisión

@@ -1,6 +1,6 @@
 # Estructura del proyecto — CRM Productividad Hello-Minus
 
-**Avance:** 16 de 21 carpetas con contenido.
+**Avance:** 17 de 21 carpetas con contenido.
 
 Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 
@@ -20,7 +20,7 @@ Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 | ✅ | `frontend/dashboard/` | App React + Vite con la landing pública y el dashboard tras login |
 | ✅ | `frontend/dashboard/src/` | Código fuente de la app |
 | ✅ | `frontend/dashboard/src/pages/` | Páginas de nivel superior (Landing, Dashboard de reportes, Tablero de tareas/productividad, Inbox de conversaciones) |
-| ⬜ | `frontend/dashboard/src/components/` | Componentes reutilizables de UI (tarjetas de tarea, hilo de conversación, filtros, tiles de indicadores) |
+| ✅ | `frontend/dashboard/src/components/` | Componentes reutilizables de UI (tarjetas de tarea, hilo de conversación, filtros, tiles de indicadores) |
 | ⬜ | `frontend/dashboard/src/charts/` | Wrappers de Recharts para los indicadores del dashboard (productividad por asesor, volumen de conversaciones, tareas cumplidas vs. vencidas) |
 | ⬜ | `frontend/dashboard/src/hooks/` | Hooks de React, incluyendo la suscripción a Supabase Realtime (mensajes entrantes, cambios de estado de tareas) |
 | ✅ | `frontend/dashboard/src/lib/` | Clientes y utilidades compartidas (supabaseClient, helpers de fecha/formato) |

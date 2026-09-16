@@ -5,6 +5,7 @@ import { corsAcotado } from './middleware/cors.js';
 import { manejarErrores, rutaNoEncontrada } from './middleware/errores.js';
 import { personas } from './routes/personas.js';
 import { proyectos } from './routes/proyectos.js';
+import { repos } from './routes/repos.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get('/salud', (_req, res) => {
 
 app.use('/proyectos', exigirSesion, proyectos);
 app.use('/personas', exigirSesion, personas);
+app.use('/repos', exigirSesion, repos);
 
 app.use(rutaNoEncontrada);
 app.use(manejarErrores);

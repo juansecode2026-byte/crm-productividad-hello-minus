@@ -212,6 +212,57 @@ export type Database = {
           },
         ]
       }
+      claves_ingesta: {
+        Row: {
+          activa: boolean
+          creada_en: string
+          creada_por: string | null
+          hash_clave: string
+          id: string
+          nombre: string
+          prefijo: string
+          proyecto_id: string
+          ultimo_uso_en: string | null
+        }
+        Insert: {
+          activa?: boolean
+          creada_en?: string
+          creada_por?: string | null
+          hash_clave: string
+          id?: string
+          nombre: string
+          prefijo: string
+          proyecto_id: string
+          ultimo_uso_en?: string | null
+        }
+        Update: {
+          activa?: boolean
+          creada_en?: string
+          creada_por?: string | null
+          hash_clave?: string
+          id?: string
+          nombre?: string
+          prefijo?: string
+          proyecto_id?: string
+          ultimo_uso_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claves_ingesta_creada_por_fkey"
+            columns: ["creada_por"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claves_ingesta_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           contacto: string | null
@@ -1060,6 +1111,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      repos_candidatos: {
+        Row: {
+          agregado_en: string
+          id: string
+          notas: string | null
+          owner: string
+          repo: string
+        }
+        Insert: {
+          agregado_en?: string
+          id?: string
+          notas?: string | null
+          owner: string
+          repo: string
+        }
+        Update: {
+          agregado_en?: string
+          id?: string
+          notas?: string | null
+          owner?: string
+          repo?: string
+        }
+        Relationships: []
       }
       repositorios: {
         Row: {

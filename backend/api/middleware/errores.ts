@@ -31,6 +31,7 @@ const mensajesPorRestriccion: Record<string, string> = {
   miembro_unico_por_periodo: 'Esa persona ya tiene una entrada al proyecto en esa fecha',
   personas_email_key: 'Ya existe una persona con ese email',
   personas_github_username_key: 'Ese usuario de GitHub ya está asignado a otra persona',
+  repositorios_github_repo_key: 'Ese repositorio ya está vinculado a otro proyecto',
 };
 
 // Los mensajes de RLS y de privilegios vienen de Postgres en inglés; los de

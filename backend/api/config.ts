@@ -6,6 +6,9 @@ const esquema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   SUPABASE_URL: z.url(),
   SUPABASE_ANON_KEY: z.string().min(1),
+  // Opcional: sube el límite de la API de GitHub de 60 a 5000 peticiones/hora.
+  // Los repos candidatos son públicos, así que nunca es obligatorio.
+  GITHUB_TOKEN: z.string().min(1).optional(),
   CORS_ORIGINS: z
     .string()
     .min(1)

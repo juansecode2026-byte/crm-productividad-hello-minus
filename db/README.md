@@ -21,7 +21,10 @@ anterior ya corrió.
 | 4 | `migrations/002_seed_personas.sql` | Los dos integrantes. Placeholder, reemplazado por el paso 5. |
 | 5 | `migrations/003_actualizar_personas_reales.sql` | Datos reales de los dos integrantes. Aplicado 2026-09-15. |
 | 6 | `migrations/004_funciones_proyectos.sql` | `crear_proyecto`, `cambiar_etapa_proyecto` y un solo miembro activo por proyecto. Aplicado 2026-09-15. |
-| 7+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 7 | `migrations/005_repos_candidatos.sql` | Tabla `repos_candidatos`, sembrada con los 4 repos de Gabriel elegidos el 16 sep. |
+| 8 | `migrations/006_mas_repos_candidatos.sql` | Suma los 2 repos privados de Juan. |
+| 9 | `migrations/007_claves_ingesta.sql` | Claves por proyecto del endpoint de telemetría (solo el hash). |
+| 10+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base

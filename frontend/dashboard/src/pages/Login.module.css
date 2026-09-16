@@ -4,13 +4,14 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-2);
+  font-family: var(--sans);
 }
 
 .tarjeta {
   width: 100%;
   max-width: 360px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-borde);
+  background: var(--panel);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
   padding: var(--space-4);
 }
@@ -18,12 +19,14 @@
 .titulo {
   margin: 0 0 var(--space-1);
   font-size: 1.25rem;
+  color: var(--ink);
 }
 
 .subtitulo {
   margin: 0 0 var(--space-3);
-  color: var(--color-texto-tenue);
+  color: var(--ink-3);
   font-size: 0.9rem;
+  font-family: var(--mono);
 }
 
 .campo {
@@ -36,19 +39,20 @@
 .campo label {
   font-size: 0.85rem;
   font-weight: 600;
+  color: var(--ink-2);
 }
 
 .campo input {
   font: inherit;
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--linea-fuerte);
   border-radius: var(--radio);
-  background: var(--color-bg);
-  color: var(--color-texto);
+  background: var(--canvas);
+  color: var(--ink);
 }
 
 .campo input:focus-visible {
-  outline: 2px solid var(--color-accento);
+  outline: 2px solid var(--acento);
   outline-offset: 2px;
 }
 
@@ -58,8 +62,8 @@
 }
 
 .error {
-  background: var(--color-error-fondo);
-  color: var(--color-error);
+  background: var(--error-tenue);
+  color: var(--error);
   border-radius: var(--radio);
   padding: var(--space-1) var(--space-2);
   font-size: 0.85rem;
@@ -67,8 +71,9 @@
 }
 
 .aviso {
-  background: var(--color-bg-sutil);
-  color: var(--color-texto);
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
   padding: var(--space-1) var(--space-2);
   font-size: 0.85rem;
@@ -82,18 +87,18 @@
   padding: var(--space-1) var(--space-2);
   border: none;
   border-radius: var(--radio);
-  background: var(--color-accento);
-  color: white;
+  background: var(--acento);
+  color: var(--acento-ink);
   cursor: pointer;
-  transition: background-color 200ms ease;
+  transition: filter 200ms ease;
 }
 
 .boton:hover:not(:disabled) {
-  background: var(--color-accento-oscuro);
+  filter: brightness(1.08);
 }
 
 .boton:focus-visible {
-  outline: 2px solid var(--color-accento);
+  outline: 2px solid var(--acento);
   outline-offset: 2px;
 }
 
@@ -111,14 +116,14 @@
   margin-top: var(--space-2);
   background: none;
   border: none;
-  color: var(--color-accento);
+  color: var(--acento);
   font: inherit;
   cursor: pointer;
   text-decoration: underline;
 }
 
 .cambiarModo:focus-visible {
-  outline: 2px solid var(--color-accento);
+  outline: 2px solid var(--acento);
   outline-offset: 2px;
 }
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { contexto, type ClienteSupabase } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp, errorSinFila, validar } from '../middleware/errores.js';
+import { claves } from './claves.js';
 import { miembros } from './miembros.js';
 
 const fecha = z.iso.date();
@@ -138,3 +139,4 @@ proyectos.post('/:id/etapa', async (req, res) => {
 });
 
 proyectos.use('/:proyectoId/miembros', miembros);
+proyectos.use('/:proyectoId/claves', claves);

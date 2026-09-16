@@ -36,7 +36,7 @@ export function Login() {
 
         {registroEnviado ? (
           <p className={estilos.aviso}>
-            Cuenta creada. Revisá tu correo para confirmarla y después iniciá sesión.
+            Cuenta creada. Revisa tu correo para confirmarla y después inicia sesión.
           </p>
         ) : (
           <form onSubmit={alEnviar} noValidate>
@@ -89,7 +89,7 @@ export function Login() {
               setError(null);
             }}
           >
-            {modo === 'entrar' ? '¿Todavía no tenés cuenta? Registrate' : '¿Ya tenés cuenta? Entrá'}
+            {modo === 'entrar' ? '¿Todavía no tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entra'}
           </button>
         )}
       </div>

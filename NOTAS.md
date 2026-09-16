@@ -120,6 +120,20 @@ Lo importante es que quede, no que esté bien redactado.
   hace `select ... where p.id = ...`) no sirve para INSERT — ahí la fila
   todavía no existe. Separar INSERT del resto cuando la condición depende de
   la fila.**
+- **No existe una organización de GitHub "Hello Minus".** Todo el diseño del
+  canal de GitHub (docs de vinculación, paso 01-02 y la config de la App) da
+  por hecho una organización con una sola instalación. En la realidad los
+  repos están en cuentas personales: `juansecode2026-byte` (CRM Productividad,
+  Callcenter, constructoras, crm-mobiliaria) y `Monkeyotbz` (CRM Ventas). Se
+  verificó con `gh api user/memberships/orgs` (token con `read:org`): cero
+  organizaciones. El receptor no cambia; cambia la instalación: con cuentas
+  personales la App tiene que ser instalable en "Any account" y cada uno la
+  instala en la suya. Decisión pendiente del usuario.
+- **Probar código de Edge Functions sin Deno:** Node 24 ejecuta `.ts` directo
+  (quita los tipos), así que los módulos puros (`firma.ts`, `eventos.ts`) se
+  prueban con un script desechable que los importa por `file:///`. La firma se
+  validó contra el vector de prueba que publica GitHub. `$TMPDIR` no está
+  definido en el Bash de esta máquina: usar el scratchpad de la sesión.
 - **`estructura.yaml` tenía una contradicción con `DECISIONES.md` [D1].**
   Describía `backend/agent/` con `@anthropic-ai/sdk` (Node), pero el proyecto
   ya había decidido Python para todo lo que llama a Claude. Corregido en el

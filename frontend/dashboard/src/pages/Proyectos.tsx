@@ -101,7 +101,7 @@ export function Proyectos() {
       )}
 
       {proyectos && proyectos.length === 0 && (
-        <p className={estilos.vacio}>Todavía no hay proyectos. Creá el primero arriba.</p>
+        <p className={estilos.vacio}>Todavía no hay proyectos. Crea el primero arriba.</p>
       )}
 
       {proyectos && proyectos.length > 0 && (

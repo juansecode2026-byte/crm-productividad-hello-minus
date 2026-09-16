@@ -1,6 +1,6 @@
 # Estructura del proyecto — CRM Productividad Hello-Minus
 
-**Avance:** 15 de 21 carpetas con contenido.
+**Avance:** 16 de 21 carpetas con contenido.
 
 Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 
@@ -14,7 +14,7 @@ Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 | ✅ | `backend/api/` | App Node.js + Express — capa delgada sobre Supabase, CORS explícito y acotado. Solo la lógica que Supabase no resuelve por sí solo |
 | ✅ | `backend/api/routes/` | Routers de Express por dominio (tareas/productividad, conversaciones/inbox, reportes) |
 | ✅ | `backend/api/middleware/` | Middleware compartido (verificación de sesión Supabase, CORS, manejo de errores) |
-| ⬜ | `backend/functions/` | Edge Functions de Supabase — webhooks e integraciones de canales de mensajería para el inbox unificado (recepción de mensajes entrantes, normalización, alta del registro) |
+| ✅ | `backend/functions/` | Edge Functions de Supabase — receptores que invoca un tercero por HTTP (webhook de GitHub, ingesta de telemetría, push de agregados). Una carpeta por función; se despliegan con el MCP de Supabase |
 | ⬜ | `backend/agent/` | Servicio Python aparte (claude_agent_sdk / anthropic), al que Express llama — system_prompt.md, output_schema.json (Structured Outputs) y el cliente que arma la llamada. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt. Ver DECISIONES.md [D1] |
 | ✅ | `frontend/` | Capa de cliente completa |
 | ✅ | `frontend/dashboard/` | App React + Vite con la landing pública y el dashboard tras login |

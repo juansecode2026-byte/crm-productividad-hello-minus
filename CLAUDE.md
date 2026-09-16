@@ -109,6 +109,33 @@ reemplazar cuando se estudie el diseño (ver Pendiente).
 (+ `VITE_API_URL`), y `npm run dev`. Necesita la API corriendo en paralelo
 para crear proyectos.
 
+## Canal 1 — GitHub (`backend/functions/github-webhook/`)
+
+Edge Function de Supabase (Deno). No llama a Claude: es script, pero vive acá
+y no en `scripts/` porque la invoca GitHub por HTTP. **No moverla**: la URL de
+la GitHub App apunta a ella.
+
+- **URL:** `https://qutqsyokdlitflybfrus.supabase.co/functions/v1/github-webhook`
+- **Despliegue:** MCP de Supabase `deploy_edge_function` con los tres archivos
+  y `verify_jwt: false` — GitHub no manda JWT de Supabase; la autenticación es
+  la firma HMAC (`X-Hub-Signature-256`) que valida `firma.ts`.
+- **Escribe con la llave secreta** (`SUPABASE_SECRET_KEYS.default`), que salta
+  RLS: `commits` y `pull_requests` son de solo-sistema.
+- **Eventos:** `push` → `commits` (hasta 2048 por push, deduplicados por
+  `repo_id + sha`); `pull_request` (opened, reopened, edited, closed,
+  synchronize) → `pull_requests`; `ping` → 200. Todo lo demás → 202 ignorado.
+- **Repos sin vincular se ignoran** (202) y quedan en los logs de la función.
+  Vincular un repo a un proyecto es una fila en `repositorios` con
+  `github_repo = "dueño/nombre"`; el `github_installation_id` lo llena el
+  receptor solo.
+- **Atribución:** `personas.github_username` sin distinguir mayúsculas; si el
+  commit no trae usuario, por email. Sin coincidencia queda `persona_id` NULL.
+
+Lo que este receptor **no** hace todavía: archivos tocados de un PR (el
+payload no los trae; hace falta la API con credenciales de la App), backfill
+del historial, `area_inferida`/`tipo_inferido` (Clasificador nocturno), y
+seguir un repo renombrado (se busca por nombre, no por id).
+
 ## Base de datos
 
 Supabase, proyecto **`qutqsyokdlitflybfrus`** (`crm-productividad-hello-minus`).
@@ -125,6 +152,7 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 | `SUPABASE_SERVICE_ROLE_KEY` | Solo backend / agentes de ingesta. Salta RLS. Nunca en el frontend ni en el repo. | Supabase → Settings → API |
 | `CORS_ORIGINS` | Orígenes permitidos por el backend, coma-separados. Nunca `*` (la API no arranca si lo tiene). | config |
 | `PORT` | Puerto de la API. Opcional, por defecto `3001`. | config |
+| `GITHUB_WEBHOOK_SECRET` | Firma de los webhooks de la GitHub App. **No va en `.env`**: es secreto de Edge Functions. Mismo valor en la App y en Supabase. | Se genera una vez; Supabase → Edge Functions → Secrets |
 | `ANTHROPIC_API_KEY` | Features conversacionales / evaluación con Claude. | consola de Anthropic |
 
 ## Pendiente / en decisión

@@ -1538,6 +1538,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      registrar_sesion_claude_code: {
+        Args: {
+          p_duracion_segundos?: number
+          p_persona_id?: string
+          p_prompts_nuevos?: number
+          p_proyecto_id: string
+          p_session_id: string
+          p_visto_en: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       ambito_indicador: "persona" | "proyecto" | "portafolio"

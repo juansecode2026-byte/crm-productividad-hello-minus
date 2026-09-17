@@ -136,6 +136,31 @@ de Hello Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.
 (+ `VITE_API_URL`), y `npm run dev`. Necesita la API corriendo en paralelo
 para crear proyectos.
 
+## Fase 04 — Registro de tiempo (`scripts/derivar_registro_tiempo.py`)
+
+**100% inferido, sin captura manual** (decidido el 2026-09-17). `registro_tiempo`
+es de solo-sistema, igual que `commits` o `sesiones_claude_code` — nadie la
+escribe a mano (`db/migrations/009_registro_tiempo_inferido.sql` retiró las
+políticas de escritura de personas). La llena sola
+`scripts/derivar_registro_tiempo.py`, aritmética pura sin Claude de por medio,
+disparada por `.github/workflows/derivar-registro-tiempo.yml` todos los días
+a la 1 AM Colombia.
+
+- **Un día = un bucket.** Se agrupa por la fecha de `inicio` de la sesión de
+  Claude Code — si cruza medianoche, todo el tiempo activo cae en el día en
+  que empezó.
+- **`area`** sale de `sesiones_claude_code.area_inferida`; sin área cae en
+  `'sin_clasificar'`, nunca NULL (lo exige el constraint único
+  `persona_id, proyecto_id, fecha, area`).
+- **`tipo`** (facturable/interno) se decide por el proyecto: facturable si
+  tiene `cliente_id`, interno si no.
+- **Idempotente por diseño:** cada corrida recalcula el total del día desde
+  cero y hace upsert — como una sesión puede seguir creciendo (merge por
+  `session_id`), no hay forma de "sumar solo lo nuevo" sin sumar todo de
+  nuevo, así que se abraza eso en vez de tratar de evitarlo.
+- **Consecuencia aceptada:** solo cuenta tiempo que pasó por Claude Code.
+  Reuniones, llamadas con cliente o trabajo sin el agente no entran.
+
 ## Canal 1 — GitHub (`backend/functions/github-webhook/`)
 
 Edge Function de Supabase (Deno). No llama a Claude: es script, pero vive acá
@@ -277,7 +302,7 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
   ese mismo email para que el trigger los enlace. Hasta entonces RLS deja la
   base cerrada. Ver [db/README.md](db/README.md).
 - Rol comercial separado de admin: ¿hace falta?
-- Origen del registro de tiempo: manual vs. inferido desde sesiones de Claude Code.
-- Detalle de las fases 03-13 (solo tienen título).
+- Detalle de las fases 03 y 05-13 (solo tienen título; la 04 ya está detallada
+  arriba).
 - Sembrar catálogos: `indicador_catalogo`, `indicador_aplicabilidad`,
   `roles_proyecto`, `canales_venta`.

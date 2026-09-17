@@ -25,7 +25,8 @@ anterior ya corrió.
 | 8 | `migrations/006_mas_repos_candidatos.sql` | Suma los 2 repos privados de Juan. |
 | 9 | `migrations/007_claves_ingesta.sql` | Claves por proyecto del endpoint de telemetría (solo el hash). |
 | 10 | `migrations/008_registrar_sesion_claude_code.sql` | Fusión de los lotes de OpenTelemetry en una sola sesión. |
-| 11+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 11 | `migrations/009_registro_tiempo_inferido.sql` | `registro_tiempo` pasa a ser de solo-sistema: se retiran las políticas de escritura de personas y se agrega el constraint único que necesita el derivador para hacer upsert. |
+| 12+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base
@@ -77,12 +78,20 @@ genéricos y su política es más frágil que un `persona_id = auth.uid()`. Con
 transparencia total quedó simple hoy; si mañana se restringe, ese es el lugar
 donde más fácil se cuela un error de permisos.
 
-## Ventana de edición del registro de tiempo
+## Registro de tiempo: 100% inferido, de solo-sistema
 
-`registro_tiempo` se puede editar y borrar hasta **7 días** después de la fecha
-registrada. Pasado ese plazo queda inmutable. Sin ese límite, los indicadores
-históricos cambiarían retroactivamente y dejarían de ser confiables: un número
-que se mueve solo no sirve para decidir nada.
+Decidido el 2026-09-17 (Fase 04): `registro_tiempo` no tiene captura manual.
+Se llena solo, desde `sesiones_claude_code`, con
+`scripts/derivar_registro_tiempo.py` — mismo estatus que `commits` o
+`sesiones_claude_code`, nadie la escribe a mano y las políticas de escritura
+de personas (`crear_mi_tiempo`, `editar_mi_tiempo`, `borrar_mi_tiempo`, con la
+ventana de 7 días que tenían antes) se retiraron en la migración 009. La
+lectura no cambió: transparencia total, los dos ven las horas del otro.
+
+Consecuencia aceptada a propósito: solo se cuenta tiempo que pasó por Claude
+Code. Reuniones, llamadas con cliente o trabajo sin el agente no entran —  es
+la aproximación elegida a cambio de no depender de que alguien registre horas
+a mano todos los días.
 
 ## Funciones auxiliares
 

@@ -263,10 +263,13 @@ cientos de piezas genuinamente independientes. Si algún día se hace backfill d
 
 # Preguntas abiertas que bloquean candidatos
 
-1. **Registro de tiempo: manual, inferido o híbrido.** Sigue pendiente en
-   `db/README.md`. Si es inferido, aparece un candidato nuevo (derivar horas
-   desde `sesiones_claude_code`). Si es manual, aparece otro problema: sostener
-   la disciplina de registrarlo.
+1. ~~Registro de tiempo: manual, inferido o híbrido.~~ **Resuelto 2026-09-17:
+   100% inferido.** El candidato que esto habilitaba
+   (`scripts/derivar_registro_tiempo.py`) se construyó directo como código de
+   producto, no pasó por `seleccionar-forma` — es aritmética pura sin Claude,
+   mismo molde que el Sincronizador o el Receptor de telemetría (rechazados de
+   forma definitiva más abajo, por ser componentes de runtime del producto y
+   no automatización del laboratorio).
 2. **Aislamiento vs. prototipo local.** El agente de % de Avance necesita leer
    repos de *otros* proyectos de Hello Minus. En producción no hay problema
    (corre en servidor contra la API de GitHub), pero un prototipo local

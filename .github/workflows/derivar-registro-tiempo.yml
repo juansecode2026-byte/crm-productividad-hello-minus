@@ -1,0 +1,30 @@
+name: Derivar registro de tiempo
+
+# Fase 04 — recalcula registro_tiempo desde sesiones_claude_code todos los
+# días (a diferencia del Clasificador de commits, que corre cada 3 días: acá
+# conviene tener las horas frescas seguido, y como es aritmética pura sin
+# llamadas a Claude, no tiene costo de API que cuidar).
+"on":
+  schedule:
+    # 06:00 UTC = 1:00 AM en Colombia. Una hora antes que el Clasificador,
+    # sin motivo de dependencia entre los dos — solo para no pisarse.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  derivar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+        working-directory: scripts
+
+      - run: python derivar_registro_tiempo.py
+        working-directory: scripts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

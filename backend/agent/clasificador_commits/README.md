@@ -47,11 +47,29 @@ DATABASE_URL=postgresql://... ANTHROPIC_API_KEY=... \
 
 (desde `backend/agent/`, para que el paquete se resuelva).
 
+## El disparador — GitHub Actions
+
+`.github/workflows/clasificador-commits.yml`. Corre cada 3 días a las 2 AM
+Colombia (07:00 UTC) — más un botón "Run workflow" en la pestaña Actions para
+probarlo sin esperar. GitHub Actions y no `pg_cron` porque el clasificador ya
+está en Python (STACK.md) y las Edge Functions de Supabase solo corren Deno;
+meterlo ahí hubiera significado reescribirlo en TypeScript.
+
+**Para activarlo, en GitHub → Settings → Secrets and variables → Actions:**
+
+| Secreto | Valor |
+|---|---|
+| `ANTHROPIC_API_KEY` | La misma que usás local |
+| `DATABASE_URL` | La cadena de conexión de Postgres (Supabase → Settings → Database) |
+
+Sin los dos secretos configurados, la corrida falla al conectar — no hay
+manera de que el workflow adivine credenciales.
+
+Nota sobre el `*/3` en el cron: no da un ciclo perfecto de 3 días todos los
+meses (el campo de día del mes reinicia en 1, así que en algunos cambios de
+mes quedan dos corridas más cerca). Para esta cadencia aproximada alcanza.
+
 ## Falta
 
-- **No hay cron todavía.** `ejecutar.py` es el script que correría cada
-  noche, pero no hay ningún disparador configurado — es infraestructura de
-  despliegue, no se decidió dónde vive (¿Edge Function con `pg_cron`? ¿un
-  cron real corriendo Python en algún servidor?).
 - No se sembró `indicador_catalogo` con nada que dependa de `tipo_inferido` o
   `area_inferida` todavía — eso es el Motor de indicadores (Fase 07).

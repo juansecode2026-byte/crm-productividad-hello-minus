@@ -237,9 +237,13 @@ desviación del molde de `estructura.yaml`).
   determinístico. El agente nunca la calcula — regla de STACK.md.
 - `ejecutar.py` es el orquestador: lee `commits` sin clasificar, llama a los
   dos, actualiza. Un lote que falla no aborta la corrida.
-- Probado con datos reales de este propio repo contra la API de Claude.
-  **Falta correrlo contra la base real** (pendiente de Supabase) y **no hay
-  cron configurado todavía** — ver el README de la carpeta.
+- Probado con datos reales de este propio repo, contra la API de Claude y
+  contra la base real de Supabase (sembrando y limpiando commits de prueba).
+- **Disparador:** `.github/workflows/clasificador-commits.yml`, cada 3 días a
+  las 2 AM Colombia. GitHub Actions y no `pg_cron` porque el clasificador está
+  en Python y las Edge Functions solo corren Deno. Necesita los secretos
+  `ANTHROPIC_API_KEY` y `DATABASE_URL` en GitHub — sin configurar todavía, ver
+  el README de la carpeta.
 
 ## Base de datos
 

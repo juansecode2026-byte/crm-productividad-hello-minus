@@ -1,0 +1,35 @@
+name: Clasificador de commits
+
+# Fase 06, parte 3 — la cadena nocturna: clasifica cada 3 días los commits
+# que llegaron sin tipo_inferido. Corre en GitHub Actions en vez de un
+# servidor propio o pg_cron, porque el clasificador ya está escrito en
+# Python (STACK.md) y Supabase Edge Functions solo corre Deno.
+"on":
+  schedule:
+    # 07:00 UTC = 2:00 AM en Colombia (UTC-5, sin horario de verano).
+    # El */3 en el campo de día del mes no da un ciclo perfecto de 3 días
+    # en todos los meses (reinicia en el día 1), pero para esta cadencia
+    # aproximada alcanza — no es una tarea sensible al minuto.
+    - cron: '0 7 */3 * *'
+  # Botón "Run workflow" en la pestaña Actions, para probarlo sin esperar
+  # al cron o para correrlo a mano si hace falta.
+  workflow_dispatch:
+
+jobs:
+  clasificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+        working-directory: backend/agent
+
+      - run: python -m clasificador_commits.ejecutar
+        working-directory: backend/agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

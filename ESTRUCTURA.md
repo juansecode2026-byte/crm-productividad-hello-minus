@@ -1,6 +1,6 @@
 # Estructura del proyecto — CRM Productividad Hello-Minus
 
-**Avance:** 18 de 22 carpetas con contenido.
+**Avance:** 19 de 22 carpetas con contenido.
 
 Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 
@@ -15,7 +15,7 @@ Generado por `scripts/estructura.py`. No editar a mano: se sobrescribe.
 | ✅ | `backend/api/routes/` | Routers de Express por dominio (tareas/productividad, conversaciones/inbox, reportes) |
 | ✅ | `backend/api/middleware/` | Middleware compartido (verificación de sesión Supabase, CORS, manejo de errores) |
 | ✅ | `backend/functions/` | Edge Functions de Supabase — receptores que invoca un tercero por HTTP (webhook de GitHub, ingesta de telemetría, push de agregados). Una carpeta por función; se despliegan con el MCP de Supabase |
-| ⬜ | `backend/agent/` | Servicio Python aparte (claude_agent_sdk / anthropic), al que Express llama — system_prompt.md, output_schema.json (Structured Outputs) y el cliente que arma la llamada. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt. Ver DECISIONES.md [D1] |
+| ✅ | `backend/agent/` | Servicio Python aparte (claude_agent_sdk / anthropic), al que Express llama — system_prompt.md, output_schema.json (Structured Outputs) y el cliente que arma la llamada. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt. Ver DECISIONES.md [D1] |
 | ✅ | `paquetes/` | Paquetes propios que instalan OTROS proyectos de Hello Minus (hoy hello-minus-telemetry). No son parte del CRM en sí: son su superficie de contacto con el resto del laboratorio |
 | ✅ | `frontend/` | Capa de cliente completa |
 | ✅ | `frontend/dashboard/` | App React + Vite con la landing pública y el dashboard tras login |

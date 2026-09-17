@@ -1,0 +1,9 @@
+# Dependencias del servicio Python de agentes (STACK.md, DECISIONES.md [D1]).
+# Instalar con: pip install -r backend/agent/requirements.txt
+
+anthropic>=0.121
+pydantic>=2.0
+
+# Para escribir de vuelta a Supabase (leer commits sin clasificar, guardar
+# tipo_inferido/area_inferida). Mismo cliente que scripts/verificar_migracion.py.
+psycopg[binary]>=3.1

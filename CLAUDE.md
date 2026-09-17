@@ -222,7 +222,24 @@ commits y PRs de Claude Code — `sesiones_claude_code` no tiene columnas para
 eso y no se inventa esquema por el camino. Es una decisión a tomar cuando se
 construya el Motor de indicadores (Fase 07).
 
-Falta de la Fase 06: el Clasificador de commits (agente LLM en Python, parte 3).
+### Clasificador de commits (`backend/agent/clasificador_commits/`)
+
+Fase 06, parte 3 de 3 — **completa**. El primer y único agente de este CRM
+que llama a Claude. Usa `client.messages.parse()` con un modelo de Pydantic
+como esquema de salida (no un `output_schema.json` suelto: el modelo de
+Python ES el esquema — ver el archivo `modelos.py` para el porqué de esta
+desviación del molde de `estructura.yaml`).
+
+- **`tipo_inferido`** (funcionalidad / arreglo / refactor / documentacion /
+  configuracion / otro) sale del LLM — necesita leer intención, no hay regla
+  determinística razonable.
+- **`area_inferida`** sale de `scripts/inferir_area.py`, puramente
+  determinístico. El agente nunca la calcula — regla de STACK.md.
+- `ejecutar.py` es el orquestador: lee `commits` sin clasificar, llama a los
+  dos, actualiza. Un lote que falla no aborta la corrida.
+- Probado con datos reales de este propio repo contra la API de Claude.
+  **Falta correrlo contra la base real** (pendiente de Supabase) y **no hay
+  cron configurado todavía** — ver el README de la carpeta.
 
 ## Base de datos
 
@@ -242,7 +259,7 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 | `PORT` | Puerto de la API. Opcional, por defecto `3001`. | config |
 | `GITHUB_WEBHOOK_SECRET` | Firma de los webhooks de la GitHub App. **No va en `.env`**: es secreto de Edge Functions. Mismo valor en la App y en Supabase. | Se genera una vez; Supabase → Edge Functions → Secrets |
 | `GITHUB_TOKEN` | Backend, opcional. Sube el límite de la API pública de GitHub y permite leer repos privados propios en `GET /repos/candidatos`. | Personal access token, solo lectura |
-| `ANTHROPIC_API_KEY` | Features conversacionales / evaluación con Claude. | consola de Anthropic |
+| `ANTHROPIC_API_KEY` | `backend/agent/` — el Clasificador de commits y los que sigan. | consola de Anthropic |
 
 ## Pendiente / en decisión
 

@@ -34,6 +34,9 @@ carpetas:
   - ruta: backend/agent
     para: Servicio Python aparte (claude_agent_sdk / anthropic), al que Express llama — system_prompt.md, output_schema.json (Structured Outputs) y el cliente que arma la llamada. Un agente por tarea; si emite veredicto, el cálculo determinista va en scripts, no en el prompt. Ver DECISIONES.md [D1]
 
+  - ruta: paquetes
+    para: Paquetes propios que instalan OTROS proyectos de Hello Minus (hoy hello-minus-telemetry). No son parte del CRM en sí: son su superficie de contacto con el resto del laboratorio
+
   - ruta: frontend
     para: Capa de cliente completa
   - ruta: frontend/dashboard

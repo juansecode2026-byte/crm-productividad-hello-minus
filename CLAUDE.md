@@ -183,9 +183,46 @@ pura en `eventos.ts`, probable con Node sin desplegar). **Fase 06, parte 1 de 3.
   usuario de GitHub; se resuelve sin distinguir mayúsculas. Sin coincidencia la
   sesión entra huérfana, igual que un commit sin autor conocido.
 
-Falta de la Fase 06: el paquete cliente `hello-minus-telemetry` (parte 2), la
-ruta de Claude Code vía OpenTelemetry (necesita colector intermedio, parte 2)
-y el Clasificador de commits (agente LLM en Python, parte 3).
+### Cómo reporta cada proyecto
+
+**Sus propios agentes** → paquete `paquetes/hello-minus-telemetry` (JS plano,
+sin dependencias). Agrupa, reintenta una vez, y **nunca lanza hacia el
+proyecto que lo usa**: la telemetría no puede tumbar un proyecto. Sin
+`HELLO_MINUS_TELEMETRY_KEY` queda inerte con un aviso. Su distribución
+(repo propio vs. npm vs. copiar) está sin decidir — ver su README.
+
+**Claude Code** → Edge Function `backend/functions/ingesta-otel/`, que habla
+OTLP/JSON directo. **No hace falta el colector de OpenTelemetry** que asumía
+`docs/paso-a-paso-vincular-proyectos-hello-minus.md`: Claude Code soporta
+`http/json` y postea solo a `/v1/metrics` y `/v1/logs`. Se configura así en
+cada proyecto:
+
+```
+CLAUDE_CODE_ENABLE_TELEMETRY=1
+OTEL_METRICS_EXPORTER=otlp
+OTEL_LOGS_EXPORTER=otlp
+OTEL_EXPORTER_OTLP_PROTOCOL=http/json
+OTEL_EXPORTER_OTLP_ENDPOINT=https://qutqsyokdlitflybfrus.supabase.co/functions/v1/ingesta-otel
+OTEL_EXPORTER_OTLP_HEADERS=X-API-Key=<la clave del proyecto>
+```
+
+De ahí salen `session.id`, `user.email` (para atribuir la persona),
+`claude_code.active_time.total` y el conteo de eventos
+`claude_code.user_prompt`. **El contenido de los prompts no se envía**: Claude
+Code no lo incluye salvo que se active a mano, y no se activa.
+
+Los lotes llegan desordenados y con contadores acumulativos, así que la
+fusión la hace `registrar_sesion_claude_code` en SQL
+(`db/migrations/008`): la ventana solo crece (`least`/`greatest`), la duración
+se queda con la mayor, los prompts se **suman** (cada lote trae solo los
+suyos) y la persona resuelta no se pierde si un lote posterior llega sin email.
+
+Métricas que hoy se descartan a propósito: costo, tokens, líneas de código,
+commits y PRs de Claude Code — `sesiones_claude_code` no tiene columnas para
+eso y no se inventa esquema por el camino. Es una decisión a tomar cuando se
+construya el Motor de indicadores (Fase 07).
+
+Falta de la Fase 06: el Clasificador de commits (agente LLM en Python, parte 3).
 
 ## Base de datos
 

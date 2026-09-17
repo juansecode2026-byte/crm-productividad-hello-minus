@@ -24,7 +24,8 @@ anterior ya corrió.
 | 7 | `migrations/005_repos_candidatos.sql` | Tabla `repos_candidatos`, sembrada con los 4 repos de Gabriel elegidos el 16 sep. |
 | 8 | `migrations/006_mas_repos_candidatos.sql` | Suma los 2 repos privados de Juan. |
 | 9 | `migrations/007_claves_ingesta.sql` | Claves por proyecto del endpoint de telemetría (solo el hash). |
-| 10+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 10 | `migrations/008_registrar_sesion_claude_code.sql` | Fusión de los lotes de OpenTelemetry en una sola sesión. |
+| 11+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base

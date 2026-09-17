@@ -39,6 +39,28 @@ secundaria. Documentación de diseño en [docs/](docs/).
   ciclo de vida de cualquier proyecto (1-9, campo `proyectos.etapa_actual`); las
   **13 fases** son el plan de construcción de este CRM
   ([docs/fases-...](docs/fases-crm-productividad-hello-minus.md)).
+
+  Definidas el 2026-09-17. No hay tabla catálogo — es vocabulario fijo, igual
+  que un enum, documentado acá porque el "sale con" es texto largo:
+
+  | # | Etapa | Sale con |
+  |---|---|---|
+  | 1 | Descubrimiento y alcance | Claro para qué es el proyecto y quién lo pidió |
+  | 2 | Diseño y arquitectura | Esquema de datos y componentes listados. **Congela el alcance** (`alcance_congelado_en`) |
+  | 3 | Configuración del entorno | El proyecto corre local y despliega un "hola mundo" |
+  | 4 | Construcción del núcleo | Base de datos + backend + frontend funcionan de punta a punta, aunque sin pulir |
+  | 5 | Construcción de agentes de IA | Cada agente cumple contra casos de prueba reales |
+  | 6 | Integración | Un dato que entra por un canal llega correcto al otro extremo |
+  | 7 | Pruebas y aseguramiento | Sin errores críticos conocidos; agentes evaluados, no solo probados a ojo |
+  | 8 | Despliegue y piloto | Corrió en producción un tiempo razonable sin incidentes graves |
+  | 9 | Operación y mejora continua | No sale — es la etapa de reposo mientras el proyecto siga activo |
+
+  **No todo proyecto pasa por las 9.** Es vocabulario compartido para que
+  "en qué etapa está" se pueda comparar entre proyectos, no un camino
+  obligatorio — `cambiar_etapa_proyecto()` ya permite saltar (ej. un proyecto
+  sin IA salta de la 4 a la 6). La complejidad que no cabe en 9 etapas fijas
+  vive un nivel más abajo, en el `checklist_items` y los `hitos` propios de
+  cada proyecto — no se inventan etapas nuevas por proyecto.
 - **Alcance congelado:** al cerrar la Etapa 2 se fija `alcance_congelado_en`.
   Eso es el 100% oficial. Todo lo detectado después entra como
   `candidatos_alcance` y no cuenta en el % hasta que una persona lo aprueba —

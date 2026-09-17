@@ -117,11 +117,18 @@ actualizado: 2026-08-28 (v2 — 32 tablas, 9 bloques, sección RLS ampliada)
 
 - Las otras 12 fases siguen sin detalle —solo tienen título—, les falta lo mismo que ya se le dio a la Fase 01.
 - Dos decisiones sin resolver dentro de esta misma fase: si el líder ve el detalle de Tarea Semanal de su equipo o solo el agregado, y si hace falta un rol comercial aparte de admin.
-- Decisión pendiente sobre el registro de tiempo: captura manual (precisa, requiere disciplina) o estimación automática desde sesiones de Claude Code (cero fricción, subestima).
+- ~~Decisión pendiente sobre el registro de tiempo~~ **Resuelto 2026-09-17:**
+  100% inferido desde sesiones de Claude Code, sin captura manual. Ver
+  `CLAUDE.md`, sección Fase 04.
 - El scaffolding en sí no se ha detallado —el título dice "base de datos y scaffolding", pero solo se desarrolló la base de datos.
 - No hay dependencias explícitas entre fases —por ejemplo, la Fase 09 necesita que la Fase 06 ya esté funcionando.
-- Falta aclarar la diferencia entre las 9 etapas de un proyecto cualquiera y estas 13 fases de construcción del CRM —son dos sistemas distintos.
-- No hay un criterio de cierre por fase, como sí lo tienen las 9 etapas (el "sale con"). Sin eso es difícil saber cuándo una fase está realmente terminada.
+- ~~Falta aclarar la diferencia entre las 9 etapas...~~ **Resuelto 2026-09-17:**
+  las 9 etapas, sus nombres y su "sale con" quedaron definidos en `CLAUDE.md`,
+  sección "Reglas de negocio clave".
+- No hay un criterio de cierre por fase, como sí lo tienen ahora las 9 etapas
+  (el "sale con"). Sin eso es difícil saber cuándo una de estas 13 fases de
+  construcción del CRM está realmente terminada — sigue pendiente, es un
+  problema distinto al de las etapas.
 
 ---
 

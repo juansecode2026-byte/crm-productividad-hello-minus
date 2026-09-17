@@ -102,6 +102,10 @@ miembros y personas.
 | `POST /personas` · `PATCH /personas/:id` | Solo admin (RLS). Nunca deja la base sin un admin activo |
 | `GET /repos/candidatos` | `repos_candidatos` menos lo que ya está en `repositorios`, con métricas reales leídas en vivo de la API pública de GitHub (`services/github.ts`) |
 | `POST /repos/vincular` | Crea el proyecto (`crear_proyecto`) y la fila en `repositorios` en un solo paso |
+| `POST /proyectos/:id/tareas` | Tarea semanal. `persona_id` por defecto quien la crea; asignarla a otra solo si es admin (RLS). Chequeo extra: la persona debe ser miembro activo del proyecto |
+| `PATCH` · `DELETE /proyectos/:id/tareas/:tareaId` | Solo quien la tiene asignada o admin (RLS) |
+| `POST /proyectos/:id/bloqueos` | Abre un bloqueo — siempre a nombre de quien lo crea, no hay "abrir a nombre de otro" |
+| `POST /proyectos/:id/bloqueos/:bloqueoId/resolver` | Cierra el bloqueo (`resuelto_en`, `resuelto_por` = quien resuelve). No se puede resolver dos veces |
 
 **`repos_candidatos`** (tabla nueva, `db/migrations/005`) es la lista de vigilancia
 del admin — repos que interesa vincular, no un rastreo de toda una cuenta de
@@ -157,6 +161,33 @@ de Hello Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.
 `frontend/dashboard/.env` con la sección Frontend de `.env.example`
 (+ `VITE_API_URL`), y `npm run dev`. Necesita la API corriendo en paralelo
 para crear proyectos.
+
+## Fase 03 — Tareas semanales, bloqueos y Detector de rastro
+
+`tareas_semanales` y `bloqueos` ya tenían RLS completo desde la Fase 01
+(`db/policies/001_baseline.sql`) — lo que faltaba era la capa de API (rutas
+arriba) y el agente 04 del catálogo.
+
+**Detector de rastro semanal** (`scripts/detectar_rastro_semanal.py`), con el
+Verificador de evidencia (agente 13) fusionado adentro por decisión de
+`docs/agentes-crm-productividad-hello-minus.md` — no se construye aparte.
+Corre los sábados a las 12:00 Colombia
+(`.github/workflows/detectar-rastro-semanal.yml`).
+
+- Por cada `tareas_semanales`, cruza las áreas declaradas contra
+  `commits.area_inferida`, `pull_requests.area_inferida` y
+  `sesiones_claude_code.area_inferida` de la misma persona, mismo proyecto,
+  dentro de `[semana_inicio, semana_fin]`. Lo que encuentra queda en
+  `tarea_evidencia`.
+- Es consulta cruzada entre tablas, no juicio — determinístico, sin Claude.
+- **Una tarea sin evidencia no es un error de la corrida:** es la señal en sí
+  misma (alguien declaró un área en la que no dejó rastro). No se completa ni
+  se corrige sola.
+- Idempotente: `tarea_evidencia_unica` (`persona, área, fuente, referencia`)
+  evita duplicar evidencia ya encontrada en corridas anteriores.
+- Probado de punta a punta contra la base real: sembré una tarea con 2 áreas
+  declaradas y evidencia real solo en una — confirmó que encuentra las 3
+  fuentes en el área correcta y no inventa nada en la otra.
 
 ## Fase 04 — Registro de tiempo (`scripts/derivar_registro_tiempo.py`)
 
@@ -324,7 +355,11 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
   ese mismo email para que el trigger los enlace. Hasta entonces RLS deja la
   base cerrada. Ver [db/README.md](db/README.md).
 - Rol comercial separado de admin: ¿hace falta?
-- Detalle de las fases 03 y 05-13 (solo tienen título; la 04 ya está detallada
-  arriba).
+- Detalle de las fases 05 y 07-13 (solo tienen título; la 03 y la 04 ya están
+  detalladas arriba).
+- **Dentro de la Fase 03:** `checklist_items` y `hitos` (por etapa) quedaron
+  sin construir — tareas semanales, bloqueos y el Detector de rastro sí están
+  completos. `historial_etapas` ya se llena solo desde
+  `cambiar_etapa_proyecto()` (Fase 02).
 - Sembrar catálogos: `indicador_catalogo`, `indicador_aplicabilidad`,
   `roles_proyecto`, `canales_venta`.

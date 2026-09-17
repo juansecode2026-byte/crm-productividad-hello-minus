@@ -72,7 +72,7 @@ export function desdeSupabase(error: PostgrestError): ErrorHttp {
 // integrantes leen todo, si la fila se ve es que falta permiso de escritura.
 export async function errorSinFila(
   supabase: ClienteSupabase,
-  tabla: 'proyectos' | 'personas',
+  tabla: 'proyectos' | 'personas' | 'tareas_semanales' | 'bloqueos',
   id: string,
   recurso: string,
 ): Promise<ErrorHttp> {

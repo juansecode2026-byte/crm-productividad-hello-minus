@@ -1,0 +1,29 @@
+name: Detector de rastro semanal
+
+# Fase 03 — agente 04 del catálogo, con el Verificador de evidencia (agente
+# 13) fusionado adentro. Cruza lo que cada quien declaró en tareas_semanales
+# contra la evidencia real en commits, pull_requests y sesiones_claude_code.
+"on":
+  schedule:
+    # 17:00 UTC = 12:00 en Colombia, sábados — igual que especifica
+    # docs/agentes-crm-productividad-hello-minus.md.
+    - cron: '0 17 * * 6'
+  workflow_dispatch:
+
+jobs:
+  detectar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+        working-directory: scripts
+
+      - run: python detectar_rastro_semanal.py
+        working-directory: scripts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

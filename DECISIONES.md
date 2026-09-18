@@ -218,6 +218,24 @@ mismo prompt que se evalúa.
 
 # Decisiones de arquitectura
 
+## [D2] Router en el frontend: react-router-dom
+
+- **Estado:** ACEPTADO
+- **Decidido:** 2026-09-18
+
+`STACK.md` no menciona router porque nunca hizo falta: `App.tsx` era
+literalmente `session ? <Proyectos /> : <Login />`, sin navegación. Al
+construir la pantalla de detalle de proyecto (Fase 03) hacía falta decidir
+cómo se llega a ella — un store de Zustand sin URL, o un router con URL propia
+(`/proyectos/:id`).
+
+Se elige **react-router-dom** por tres razones concretas, no por costumbre:
+la barra lateral ya tiene 4 secciones marcadas "pronto" que también van a
+necesitar URL propia; con dos personas trabajando los mismos proyectos,
+mandar un link puntual es el flujo natural; y agregarlo ahora cuesta una
+dependencia y ~20 líneas, mientras que agregarlo después de que existan 6
+pantallas sin URL cuesta refactorizarlas todas.
+
 ## [D1] Lenguaje de los agentes: Python
 
 - **Estado:** ACEPTADO

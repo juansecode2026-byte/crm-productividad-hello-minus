@@ -1,0 +1,641 @@
+.cargando,
+.vacio {
+  padding: var(--space-3);
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.error {
+  background: var(--error-tenue);
+  color: var(--error);
+  border-radius: var(--radio-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  margin: 16px;
+}
+.volver {
+  display: inline-block;
+  margin: 0 16px;
+  color: var(--acento);
+  font-size: 12.5px;
+  text-decoration: none;
+}
+.volver:hover {
+  text-decoration: underline;
+}
+
+/* ---------------- cabecera ---------------- */
+.cabecera {
+  padding: 16px 16px 0;
+}
+.miga {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.03em;
+}
+.miga a {
+  color: var(--ink-3);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--linea-fuerte);
+}
+.miga a:hover {
+  color: var(--ink-2);
+}
+.cabecera h1 {
+  font-size: 19px;
+  margin: 4px 0 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 6px;
+  padding-bottom: 16px;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.meta b {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+/* ---------------- secciones genéricas ---------------- */
+.seccion {
+  padding: 0 16px 16px;
+}
+.encabezadoSeccion {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.encabezadoSeccion h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.permiso {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+.permiso.restringido,
+.restringido {
+  color: var(--alerta);
+}
+.conteo {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: 9px;
+  padding: 0 6px;
+}
+.conteo.mal,
+.mal {
+  color: var(--error);
+  border-color: var(--error);
+}
+.conteo.ojo,
+.ojo {
+  color: var(--alerta);
+  border-color: var(--alerta);
+}
+
+.bloque {
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+}
+
+/* ---------------- rail de etapas ---------------- */
+.railEnvoltura {
+  overflow-x: auto;
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+}
+.rail {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(96px, 1fr));
+  gap: 3px;
+  padding: 14px;
+  min-width: 620px;
+}
+.etapa {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.barraEtapa {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--linea-fuerte);
+}
+.etapa.hecha .barraEtapa {
+  background: var(--ok);
+}
+.etapa.actual .barraEtapa {
+  background: var(--acento);
+}
+.etapa.saltada .barraEtapa {
+  background: repeating-linear-gradient(90deg, var(--linea-fuerte) 0 3px, transparent 3px 7px);
+}
+.numEtapa {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+.etapa.actual .numEtapa {
+  color: var(--acento);
+  font-weight: 600;
+}
+.nombreEtapa {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.3;
+}
+.etapa.hecha .nombreEtapa {
+  color: var(--ink-2);
+}
+.etapa.actual .nombreEtapa {
+  color: var(--ink);
+  font-weight: 600;
+}
+.etapa.saltada .nombreEtapa {
+  color: var(--dormido);
+  font-style: italic;
+}
+.selloEtapa {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  color: var(--dormido);
+}
+.etapa.hecha .selloEtapa {
+  color: var(--ok);
+}
+.etapa.actual .selloEtapa {
+  color: var(--acento);
+}
+
+/* ---------------- rejilla de dos columnas ---------------- */
+.rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 0 16px 32px;
+  align-items: start;
+}
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .rejilla {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------- checklist ---------------- */
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.item {
+  display: flex;
+  gap: 9px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--linea);
+  align-items: flex-start;
+}
+.item:last-child {
+  border-bottom: 0;
+}
+.caja {
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: 3px;
+  flex: 0 0 15px;
+  margin-top: 2px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: var(--ok);
+  background: var(--panel);
+  cursor: pointer;
+  padding: 0;
+}
+.item.hecho .caja {
+  background: var(--ok-tenue);
+  border-color: var(--ok);
+}
+.caja:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+.cuerpoItem {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.textoItem {
+  color: var(--ink);
+  font-size: 12.5px;
+}
+.item.hecho .textoItem {
+  color: var(--ink-2);
+}
+.firma {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ok);
+  margin-top: 2px;
+}
+.sinFirma {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.borrar {
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+.borrar:hover {
+  color: var(--error);
+  background: var(--error-tenue);
+}
+.borrar:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+
+/* ---------------- formularios inline ---------------- */
+.formInline,
+.formHito {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--linea);
+  flex-wrap: wrap;
+}
+.formInline input,
+.formHito input,
+.formInline select,
+.formHito select {
+  font: inherit;
+  font-size: 12px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-sm);
+  padding: 6px 8px;
+}
+.formInline input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.formHito input[type='text'],
+.formHito input:not([type]) {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.formInline button,
+.formHito button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--acento);
+  color: var(--acento-ink);
+  border: none;
+  border-radius: var(--radio-sm);
+  padding: 6px 12px;
+  flex: 0 0 auto;
+}
+.formInline button:disabled,
+.formHito button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.formInline input:focus-visible,
+.formHito input:focus-visible,
+.formInline select:focus-visible,
+.formHito select:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+
+/* ---------------- tabla de hitos ---------------- */
+.tablaEnvoltura {
+  overflow-x: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  min-width: 440px;
+}
+th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--linea);
+}
+td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--linea);
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+tr:last-child td {
+  border-bottom: 0;
+}
+.principal {
+  color: var(--ink);
+}
+.fecha {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.accionesFila {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.accion {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--acento);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.accion:hover {
+  background: var(--acento-tenue);
+}
+.accion:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--linea-fuerte);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.chip.ok,
+.ok {
+  color: var(--ok);
+  border-color: var(--ok);
+  background: var(--ok-tenue);
+}
+.chip.curso,
+.curso {
+  color: var(--acento);
+  border-color: var(--acento);
+  background: var(--acento-tenue);
+}
+.chip.vencido,
+.vencido {
+  color: var(--error);
+  border-color: var(--error);
+  background: var(--error-tenue);
+}
+.chip.alerta,
+.alerta {
+  color: var(--alerta);
+  border-color: var(--alerta);
+  background: var(--alerta-tenue);
+}
+
+/* ---------------- tareas semanales y rastro ---------------- */
+.tarea {
+  padding: 12px;
+  border-bottom: 1px solid var(--linea);
+}
+.tarea:last-child {
+  border-bottom: 0;
+}
+.semana {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.03em;
+}
+.tituloTarea {
+  color: var(--ink);
+  margin: 3px 0 10px;
+  font-weight: 500;
+  font-size: 12.5px;
+}
+.area {
+  border-left: 2px solid var(--linea-fuerte);
+  padding: 0 0 0 10px;
+  margin-bottom: 10px;
+}
+.area:last-child {
+  margin-bottom: 0;
+}
+.area.conRastro {
+  border-left-color: var(--ok);
+}
+.area.sinRastro {
+  border-left-color: var(--alerta);
+}
+.nombreArea {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+.evidencias {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.evidencias li {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.fuente {
+  color: var(--dormido);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex: 0 0 auto;
+}
+.ref {
+  color: var(--acento);
+}
+.notaSinRastro {
+  color: var(--alerta);
+  font-size: 11.5px;
+  margin: 4px 0 0;
+}
+.notaSinRastro span {
+  color: var(--ink-3);
+}
+
+/* ---------------- formularios de bloque (tarea / bloqueo) ---------------- */
+.formTarea {
+  padding: 12px;
+  border-top: 1px solid var(--linea);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.formTarea input,
+.formTarea select {
+  font: inherit;
+  font-size: 12.5px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-sm);
+  padding: 7px 9px;
+}
+.formTarea input:focus-visible,
+.formTarea select:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+.filaFechas {
+  display: flex;
+  gap: 8px;
+}
+.filaFechas input {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.errorForm {
+  background: var(--error-tenue);
+  color: var(--error);
+  border-radius: var(--radio-sm);
+  padding: 6px 9px;
+  font-size: 11.5px;
+  margin: 0;
+}
+.accionesFila button[type='submit'] {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--acento);
+  color: var(--acento-ink);
+  border: none;
+  border-radius: var(--radio-sm);
+  padding: 7px 12px;
+}
+.btnFantasma {
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-sm);
+  padding: 7px 12px;
+}
+.btnFantasma:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.btnAbrirForm {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: 12px;
+  color: var(--acento);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--linea);
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.btnAbrirForm:hover {
+  background: var(--panel);
+}
+.btnAbrirForm:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: -2px;
+}
+
+/* ---------------- bloqueos ---------------- */
+.bloqueoFila {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--linea);
+  position: relative;
+}
+.bloqueoFila:last-of-type {
+  border-bottom: 0;
+}
+.filaBloqueo {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.descBloqueo {
+  color: var(--ink);
+  font-size: 12.5px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.bloqueoFila.resuelto .descBloqueo {
+  color: var(--ink-3);
+}
+.duracion {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.duracion.abierto {
+  color: var(--alerta);
+}
+.bloqueoFila > .accion {
+  margin-top: 6px;
+}

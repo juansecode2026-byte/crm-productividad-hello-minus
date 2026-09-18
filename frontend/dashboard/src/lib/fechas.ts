@@ -16,3 +16,16 @@ export function aFechaIso(iso: string | null): string {
   if (!iso) return '';
   return iso.slice(0, 10);
 }
+
+// Duración entre dos timestamps, en días completos — para "abierto hace X
+// días" o cuánto duró una etapa. `hasta` es opcional: sin ella, cuenta hasta
+// ahora (algo todavía abierto).
+export function diasEntre(desdeIso: string, hastaIso: string | null): number {
+  const hasta = hastaIso ? new Date(hastaIso).getTime() : Date.now();
+  return Math.max(0, Math.floor((hasta - new Date(desdeIso).getTime()) / DIA_MS));
+}
+
+export function fechaCorta(iso: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+}

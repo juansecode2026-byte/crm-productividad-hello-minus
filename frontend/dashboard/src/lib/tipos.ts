@@ -25,6 +25,62 @@ export interface Proyecto {
   alcance_congelado_en: string | null;
 }
 
+export interface HistorialEtapa {
+  etapa: number;
+  entra_en: string;
+  sale_en: string | null;
+}
+
+export interface ChecklistItem {
+  id: string;
+  proyecto_id: string;
+  etapa: number;
+  texto: string;
+  completado: boolean;
+  completado_por: string | null;
+  completado_en: string | null;
+}
+
+export interface Hito {
+  id: string;
+  proyecto_id: string;
+  nombre: string;
+  etapa: number | null;
+  fecha_planeada: string | null;
+  fecha_real: string | null;
+  estado: 'pendiente' | 'en_curso' | 'cumplido' | 'vencido';
+}
+
+export interface TareaEvidencia {
+  id: string;
+  tarea_id: string;
+  area: string;
+  fuente: 'commit' | 'pull_request' | 'sesion_claude_code';
+  referencia: string;
+  detectado_en: string;
+}
+
+export interface TareaSemanal {
+  id: string;
+  proyecto_id: string;
+  persona_id: string;
+  semana_inicio: string;
+  semana_fin: string;
+  titulo: string;
+  areas: string[];
+}
+
+export interface Bloqueo {
+  id: string;
+  proyecto_id: string;
+  persona_id: string;
+  descripcion: string;
+  tipo: 'interno' | 'externo' | 'cliente';
+  abierto_en: string;
+  resuelto_en: string | null;
+  resuelto_por: string | null;
+}
+
 export interface RepoCandidato {
   owner: string;
   repo: string;

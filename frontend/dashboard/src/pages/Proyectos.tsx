@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { aFechaIso, tiempoRelativo } from '../lib/fechas';
 import type { Persona, Proyecto, RepoCandidato } from '../lib/tipos';
@@ -379,15 +380,17 @@ export function Proyectos() {
         {proyectos && proyectos.length > 0 && (
           <ul className={estilos.lista}>
             {proyectos.map((proyecto) => (
-              <li key={proyecto.id} className={estilos.tarjetaProyecto}>
-                <h3 className={estilos.nombreProyecto}>{proyecto.nombre}</h3>
-                <p className={estilos.metaProyecto}>
-                  {proyecto.estado === 'activo' && <span className={estilos.pillActivo}>Activo</span>}
-                  <span>
-                    Etapa {proyecto.etapa_actual} de 9 · {proyecto.modalidad}
-                  </span>
-                  {proyecto.alcance_congelado_en && <span>· alcance congelado</span>}
-                </p>
+              <li key={proyecto.id}>
+                <Link to={`/proyectos/${proyecto.id}`} className={estilos.tarjetaProyecto}>
+                  <h3 className={estilos.nombreProyecto}>{proyecto.nombre}</h3>
+                  <p className={estilos.metaProyecto}>
+                    {proyecto.estado === 'activo' && <span className={estilos.pillActivo}>Activo</span>}
+                    <span>
+                      Etapa {proyecto.etapa_actual} de 9 · {proyecto.modalidad}
+                    </span>
+                    {proyecto.alcance_congelado_en && <span>· alcance congelado</span>}
+                  </p>
+                </Link>
               </li>
             ))}
           </ul>

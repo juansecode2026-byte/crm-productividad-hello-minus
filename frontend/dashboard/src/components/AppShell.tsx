@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { cerrarSesion } from '../services/authService';
 import { obtenerPersonaActual } from '../services/personasService';
 import { useThemeStore } from '../stores/themeStore';
@@ -24,6 +25,8 @@ type EstadoPersona = { nombre: string; rol: string } | 'cargando' | 'error';
 export function AppShell({ children }: { children: ReactNode }) {
   const [persona, setPersona] = useState<EstadoPersona>('cargando');
   const { tema, alternar } = useThemeStore();
+  const ubicacion = useLocation();
+  const enProyectos = ubicacion.pathname === '/' || ubicacion.pathname.startsWith('/proyectos');
 
   useEffect(() => {
     obtenerPersonaActual()
@@ -56,9 +59,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav>
-          <button type="button" className={`${estilos.navItem} ${estilos.navItemActivo}`} aria-current="page">
+          <Link
+            to="/"
+            className={`${estilos.navItem} ${enProyectos ? estilos.navItemActivo : ''}`}
+            aria-current={enProyectos ? 'page' : undefined}
+          >
             Proyectos
-          </button>
+          </Link>
           {seccionesPendientes.map((seccion) => (
             <span key={seccion} className={`${estilos.navItem} ${estilos.navItemPronto}`}>
               {seccion}

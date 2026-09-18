@@ -129,10 +129,14 @@ Supabase `generate_typescript_types`) y correr `npm run typecheck`.
 
 ## Frontend — dashboard (`frontend/dashboard/`)
 
-React + Vite + TypeScript + Zustand + CSS Modules. Dirección visual **"Consola"**
-(elegida el 2026-09-16 entre 3 mockups): oscura y densa, IBM Plex Sans/Mono,
-acento cian — barra lateral + tabla, no tarjetas. Sigue sin ser branding final
-de Hello Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.css`.
+React + Vite + TypeScript + Zustand + CSS Modules + react-router-dom
+(`DECISIONES.md [D2]`, 2026-09-18). Dirección visual **"Consola"** (elegida el
+2026-09-16 entre 3 mockups): oscura y densa, IBM Plex Sans/Mono, acento cian —
+barra lateral + tabla, no tarjetas. Sigue sin ser branding final de Hello
+Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.css`.
+
+- **Rutas:** `/` (`Proyectos.tsx`, descubrimiento + lista) y `/proyectos/:id`
+  (`Proyecto.tsx`, detalle — ver abajo).
 
 - **Auth:** `Login.tsx` registra e inicia sesión directo contra Supabase Auth
   (`supabase.auth.signUp` / `signInWithPassword`). Es la forma real de que los
@@ -158,6 +162,14 @@ de Hello Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.
   usuario; RLS decide qué ve.
 - **Escrituras con lógica:** pasan por `backend/api/` (`VITE_API_URL`), con
   `Authorization: Bearer <access_token>`.
+- **`Proyecto.tsx` (`/proyectos/:id`)** es el detalle de un proyecto —
+  estructura "Consola de Proyecto" (una de 3 propuestas comparadas el
+  2026-09-18, ver el historial de la conversación): rail de las 9 etapas
+  arriba, dos columnas abajo (checklist + hitos · tarea semanal con su
+  rastro + bloqueos). Deriva "saltada" vs. "pendiente" comparando
+  `historial_etapas` contra `etapa_actual`, no viene de la base como campo.
+  Actualización optimista solo en el toggle del checklist (revierte si la
+  API rechaza); el resto espera la respuesta antes de reflejar el cambio.
 
 **Correr local:** `cd frontend/dashboard && npm install`, crear
 `frontend/dashboard/.env` con la sección Frontend de `.env.example`
@@ -377,11 +389,5 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 - Rol comercial separado de admin: ¿hace falta?
 - Detalle de las fases 05 y 07-13 (solo tienen título; la 03 y la 04 ya están
   detalladas arriba).
-- **Nada de la Fase 03 tiene interfaz todavía.** Tareas semanales, bloqueos,
-  checklist e hitos existen solo como API — el dashboard sigue teniendo dos
-  pantallas (Login y Proyectos). Falta la pantalla de detalle de proyecto
-  (`/proyectos/:id`), que es donde irían las cuatro. Propuesta visual hecha el
-  2026-09-18, sobre los tokens de "Consola":
-  https://claude.ai/artifact/SgJVfxEV5NxFqm9mdVyyLW
 - Sembrar catálogos: `indicador_catalogo`, `indicador_aplicabilidad`,
   `roles_proyecto`, `canales_venta`.

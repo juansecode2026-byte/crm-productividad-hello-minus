@@ -102,6 +102,7 @@ miembros y personas.
 | `POST /personas` · `PATCH /personas/:id` | Solo admin (RLS). Nunca deja la base sin un admin activo |
 | `GET /repos/candidatos` | `repos_candidatos` menos lo que ya está en `repositorios`, con métricas reales leídas en vivo de la API pública de GitHub (`services/github.ts`) |
 | `POST /repos/vincular` | Crea el proyecto (`crear_proyecto`) y la fila en `repositorios` en un solo paso |
+| `POST /repos/sugerir-etapa` | Lanza el Sugeridor de etapa (agente Python) y devuelve `{etapa, evidencia, dudas}`. Solo lo dispara el botón "Sugerir"; la persona confirma antes de guardar |
 | `POST /proyectos/:id/tareas` | Tarea semanal. `persona_id` por defecto quien la crea; asignarla a otra solo si es admin (RLS). Chequeo extra: la persona debe ser miembro activo del proyecto |
 | `PATCH` · `DELETE /proyectos/:id/tareas/:tareaId` | Solo quien la tiene asignada o admin (RLS) |
 | `POST /proyectos/:id/bloqueos` | Abre un bloqueo — siempre a nombre de quien lo crea, no hay "abrir a nombre de otro" |
@@ -115,8 +116,15 @@ GitHub. Se siembra a mano por ahora; agregarlo automático es un candidato
 aplazado en `DECISIONES.md`. El lector de `services/github.ts` **no usa la
 GitHub App ni requiere token** — pega directo a la API pública de GitHub, así
 que solo funciona con repos públicos. Repos privados (los tuyos, hoy) salen con
-`disponible: false` hasta configurar `GITHUB_TOKEN` (opcional, sube el límite
-de 60 a 5000 peticiones/hora y habilita leer privados propios).
+`disponible: false` hasta configurar `GITHUB_TOKEN`.
+
+**`GITHUB_TOKEN` dejó de ser opcional en la práctica** (comprobado el
+2026-09-18): sin él son 60 peticiones/hora **por IP**, y `GET /repos/candidatos`
+gasta 12 cada vez que se carga la pantalla — dos por candidato. A las ~5
+recargas, GitHub devuelve 403 y *todos* los repos aparecen como "sin acceso",
+que se lee igual que si fueran privados. Con token son 5000/hora. Si la tabla
+aparece toda en gris, es esto antes que cualquier otra cosa: se verifica con
+`curl -s https://api.github.com/rate_limit`.
 
 Errores: `{ "error": { "mensaje", "detalles"? } }` — 400 validación, 401
 sesión, 403 permiso, 404, 409 duplicado, 422 regla de negocio.
@@ -355,6 +363,35 @@ desviación del molde de `estructura.yaml`).
   `ANTHROPIC_API_KEY` y `DATABASE_URL` en GitHub — sin configurar todavía, ver
   el README de la carpeta.
 
+### Sugeridor de etapa (`backend/agent/sugeridor_etapa/`)
+
+Segundo agente con LLM, y el primero que **no** corre por horario: lo dispara
+el botón "Sugerir" del panel de vinculación y una persona espera la respuesta
+en pantalla. Mira la estructura del repo en GitHub (carpetas hasta 2 niveles +
+archivos que delatan madurez a cualquier profundidad) más su actividad de
+commits, y propone en cuál de las 9 etapas está el proyecto, con evidencia.
+
+- **Sugiere, no decide.** Prellena el selector; la persona confirma. No es
+  formalidad: pasar de la etapa 2 congela el alcance y no se revierte. El
+  prompt le pide elegir la etapa **más temprana** ante la duda y decir qué le
+  falta ver — misma regla que `candidatos_alcance`, ningún agente aprueba solo.
+- **No toca la base.** Recibe JSON por stdin, devuelve JSON por stdout.
+- `effort: medium` (el Clasificador usa `low`): acá hay señales que se
+  contradicen entre sí, no una frase que categorizar.
+
+**El puente Node→Python** (`backend/api/services/sugeridorEtapa.ts`) es
+arquitectura nueva: Express corre en Node y los agentes son Python
+(`DECISIONES.md [D1]`), y hasta ahora ningún agente se invocaba en caliente.
+Se resolvió lanzándolo como **proceso hijo** porque se ejecuta un puñado de
+veces en la vida del sistema. **Letra chica:** asume Python disponible donde
+se despliegue el backend, con `backend/agent/requirements.txt` instalado — hoy
+eso solo se cumple en local y la fase de hosting sigue sin decidirse. Si el
+backend termina en un runtime sin Python, esto hay que repensarlo (servicio
+Python aparte, o Edge Function si algún día los agentes fueran TypeScript).
+
+Detalle importante de Windows: `ejecutar.py` fuerza `stdout` a UTF-8. Sin eso
+Python escribe en cp1252 y los acentos llegan rotos a Node ("d�as").
+
 ## Base de datos
 
 Supabase, proyecto **`qutqsyokdlitflybfrus`** (`crm-productividad-hello-minus`).
@@ -373,7 +410,8 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 | `PORT` | Puerto de la API. Opcional, por defecto `3001`. | config |
 | `GITHUB_WEBHOOK_SECRET` | Firma de los webhooks de la GitHub App. **No va en `.env`**: es secreto de Edge Functions. Mismo valor en la App y en Supabase. | Se genera una vez; Supabase → Edge Functions → Secrets |
 | `GITHUB_TOKEN` | Backend, opcional. Sube el límite de la API pública de GitHub y permite leer repos privados propios en `GET /repos/candidatos`. | Personal access token, solo lectura |
-| `ANTHROPIC_API_KEY` | `backend/agent/` — el Clasificador de commits y los que sigan. | consola de Anthropic |
+| `ANTHROPIC_API_KEY` | `backend/agent/`. El Clasificador la toma de los secretos de GitHub Actions; el Sugeridor de etapa la hereda del entorno de la API, así que para ese va **en `backend/api/.env`**. Sin ella la API arranca igual y el botón "Sugerir" responde 503. | consola de Anthropic |
+| `PYTHON_BIN` | Opcional. Qué binario de Python usa la API para lanzar al Sugeridor de etapa. Por defecto `python` en Windows, `python3` en el resto. | config |
 
 ## Pendiente / en decisión
 

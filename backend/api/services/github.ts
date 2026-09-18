@@ -27,9 +27,29 @@ export interface EstadisticasRepo {
   colaboradores: string[];
 }
 
+// Lo que el Sugeridor de etapa necesita ver para opinar: en qué está dividido
+// el proyecto, no cuánto código tiene. Resumen, no el árbol entero — un repo
+// grande tiene miles de archivos y ninguno de ellos cambia el veredicto.
+export interface EstructuraRepo {
+  disponible: boolean;
+  carpetas: string[];
+  archivosRaiz: string[];
+  // Archivos que delatan en qué etapa está el proyecto, a cualquier
+  // profundidad: en un repo con backend/ y frontend/ separados, el
+  // package.json que prueba que la app corre no está en la raíz.
+  archivosClave: string[];
+  totalArchivos: number;
+  truncado: boolean;
+}
+
 interface CommitApi {
   commit: { author: { name: string; date: string } | null };
   author: { login: string } | null;
+}
+
+interface ArbolApi {
+  tree: { path: string; type: 'blob' | 'tree' }[];
+  truncated: boolean;
 }
 
 async function api<T>(ruta: string): Promise<T | null> {
@@ -85,5 +105,76 @@ export async function estadisticasRepo(owner: string, repo: string): Promise<Est
     commitsTruncado: commits.length === 100,
     prsAbiertos: prs?.length ?? 0,
     colaboradores: [...colaboradores],
+  };
+}
+
+const PROFUNDIDAD_MAXIMA = 2; // Más abajo ya es detalle de implementación, no estructura.
+const MAX_ARCHIVOS_CLAVE = 40;
+
+// Cada patrón responde una pregunta concreta de las que separan una etapa de
+// la siguiente: ¿el proyecto corre? ¿tiene pruebas? ¿se despliega? ¿lleva
+// agentes de IA? Un archivo que no responda ninguna de esas no entra: el
+// agente no necesita ver 95 archivos para decidir.
+const PATRONES_CLAVE: RegExp[] = [
+  /(^|\/)package\.json$/i, //            ¿corre? (etapa 3)
+  /(^|\/)requirements\.txt$/i,
+  /(^|\/)pyproject\.toml$/i,
+  /(^|\/)(vite|next|webpack|rollup)\.config\.[cm]?[jt]s$/i,
+  /(^|\/)tsconfig.*\.json$/i,
+  /(^|\/)(test|tests|__tests__|spec)\//i, //  ¿tiene pruebas? (etapa 7)
+  /\.(test|spec)\.[cm]?[jt]sx?$/i,
+  /(^|\/)(pytest\.ini|jest\.config\.[cm]?[jt]s|vitest\.config\.[cm]?[jt]s)$/i,
+  /(^|\/)\.github\/workflows\//i, //      ¿CI/CD? (etapas 7-8)
+  /(^|\/)(Dockerfile|docker-compose\.ya?ml|Procfile|vercel\.json|netlify\.toml|fly\.toml|render\.yaml)$/i,
+  /(^|\/)(agent|agents|agentes|agentes-sdk|prompts?)\//i, // ¿lleva IA? (etapa 5)
+  /(^|\/)(system_prompt|prompt)\.(md|txt)$/i,
+  /(^|\/)(migrations?|migraciones)\//i, // ¿hay esquema de datos? (etapa 2)
+  /\.sql$/i,
+];
+
+// El árbol recursivo viene en una sola petición (`HEAD` sirve como ref, así no
+// hay que pedir antes el default_branch). Se resume a carpetas de hasta dos
+// niveles y archivos de la raíz: alcanza para distinguir "tiene backend y
+// frontend" de "tiene además tests y workflows", que es lo que decide la etapa.
+export async function estructuraRepo(owner: string, repo: string): Promise<EstructuraRepo> {
+  const arbol = await api<ArbolApi>(`/repos/${owner}/${repo}/git/trees/HEAD?recursive=1`);
+
+  if (!arbol) {
+    return {
+      disponible: false,
+      carpetas: [],
+      archivosRaiz: [],
+      archivosClave: [],
+      totalArchivos: 0,
+      truncado: false,
+    };
+  }
+
+  const carpetas = new Set<string>();
+  const archivosRaiz: string[] = [];
+  const archivosClave: string[] = [];
+  let totalArchivos = 0;
+
+  for (const entrada of arbol.tree) {
+    const partes = entrada.path.split('/');
+    if (entrada.type === 'tree') {
+      if (partes.length <= PROFUNDIDAD_MAXIMA) carpetas.add(entrada.path);
+      continue;
+    }
+
+    totalArchivos++;
+    if (partes.length === 1) archivosRaiz.push(entrada.path);
+    if (archivosClave.length < MAX_ARCHIVOS_CLAVE && PATRONES_CLAVE.some((patron) => patron.test(entrada.path))) {
+      archivosClave.push(entrada.path);
+    }
+  }
+
+  return {
+    disponible: true,
+    carpetas: [...carpetas].sort(),
+    archivosRaiz: archivosRaiz.sort(),
+    archivosClave: archivosClave.sort(),
+    totalArchivos,
+    truncado: arbol.truncated,
   };
 }

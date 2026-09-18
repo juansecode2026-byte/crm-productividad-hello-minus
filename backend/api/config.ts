@@ -9,6 +9,10 @@ const esquema = z.object({
   // Opcional: sube el límite de la API de GitHub de 60 a 5000 peticiones/hora.
   // Los repos candidatos son públicos, así que nunca es obligatorio.
   GITHUB_TOKEN: z.string().min(1).optional(),
+  // Opcional: la usa el proceso Python del Sugeridor de etapa, que hereda el
+  // entorno de la API. Sin ella la API arranca igual y la etapa se elige a
+  // mano — el botón de sugerencia responde 503 explicándolo.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
   CORS_ORIGINS: z
     .string()
     .min(1)

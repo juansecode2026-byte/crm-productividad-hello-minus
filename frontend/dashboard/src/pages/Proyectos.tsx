@@ -1,14 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { ETAPAS } from '../lib/etapas';
 import { aFechaIso, tiempoRelativo } from '../lib/fechas';
 import type { Persona, Proyecto, RepoCandidato } from '../lib/tipos';
 import { listarPersonasActivas } from '../services/personasService';
 import { listarProyectos } from '../services/proyectosService';
-import { listarCandidatos, vincularRepo } from '../services/reposService';
+import { listarCandidatos, sugerirEtapa, vincularRepo, type SugerenciaEtapa } from '../services/reposService';
 import estilos from './Proyectos.module.css';
 
-const ETAPAS = Array.from({ length: 9 }, (_, i) => i + 1);
 
 interface FormularioVinculo {
   nombre: string;
@@ -42,6 +42,10 @@ export function Proyectos() {
   const [enviando, setEnviando] = useState(false);
   const [errorForm, setErrorForm] = useState<string | null>(null);
 
+  const [sugerencia, setSugerencia] = useState<SugerenciaEtapa | null>(null);
+  const [sugiriendo, setSugiriendo] = useState(false);
+  const [errorSugerencia, setErrorSugerencia] = useState<string | null>(null);
+
   async function cargarCandidatos() {
     setErrorCandidatos(null);
     try {
@@ -70,12 +74,33 @@ export function Proyectos() {
     setSeleccionado(candidato);
     setForm(formularioInicial(candidato));
     setErrorForm(null);
+    setSugerencia(null);
+    setErrorSugerencia(null);
   }
 
   function cerrarVinculo() {
     setSeleccionado(null);
     setForm(null);
     setErrorForm(null);
+    setSugerencia(null);
+    setErrorSugerencia(null);
+  }
+
+  // El agente propone; la persona confirma. Nunca se envía sola: pasar de la
+  // etapa 2 congela el alcance del proyecto y eso no se revierte.
+  async function pedirSugerencia() {
+    if (!seleccionado || !form) return;
+    setErrorSugerencia(null);
+    setSugiriendo(true);
+    try {
+      const resultado = await sugerirEtapa(seleccionado.owner, seleccionado.repo);
+      setSugerencia(resultado);
+      setForm({ ...form, etapa_inicial: String(resultado.etapa) });
+    } catch (excepcion) {
+      setErrorSugerencia(excepcion instanceof Error ? excepcion.message : 'No se pudo consultar al agente');
+    } finally {
+      setSugiriendo(false);
+    }
   }
 
   async function confirmarVinculo(evento: FormEvent) {
@@ -280,20 +305,56 @@ export function Proyectos() {
 
                   <div className={estilos.campo}>
                     <label htmlFor="v-etapa">Etapa actual (1–9)</label>
-                    <select
-                      id="v-etapa"
-                      disabled={enviando}
-                      value={form.etapa_inicial}
-                      onChange={(e) => setForm({ ...form, etapa_inicial: e.target.value })}
-                    >
-                      <option value="">— Elegir —</option>
-                      {ETAPAS.map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
+                    <div className={estilos.campoConAccion}>
+                      <select
+                        id="v-etapa"
+                        disabled={enviando || sugiriendo}
+                        value={form.etapa_inicial}
+                        onChange={(e) => setForm({ ...form, etapa_inicial: e.target.value })}
+                      >
+                        <option value="">— Elegir —</option>
+                        {ETAPAS.map((etapa) => (
+                          <option key={etapa.numero} value={etapa.numero}>
+                            {etapa.numero} · {etapa.nombre}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className={estilos.btnSugerir}
+                        onClick={pedirSugerencia}
+                        disabled={enviando || sugiriendo}
+                      >
+                        {sugiriendo ? 'leyendo…' : 'Sugerir'}
+                      </button>
+                    </div>
                     <span className={estilos.pista}>Pasar la etapa 2 congela el alcance</span>
+
+                    {sugiriendo && (
+                      <span className={estilos.pista} role="status">
+                        El agente está leyendo la estructura del repo...
+                      </span>
+                    )}
+
+                    {errorSugerencia && (
+                      <span className={estilos.pistaError} role="alert">
+                        {errorSugerencia}
+                      </span>
+                    )}
+
+                    {sugerencia && !sugiriendo && (
+                      <div className={estilos.sugerencia}>
+                        <span className={estilos.sugerenciaTit}>
+                          El agente sugiere la etapa {sugerencia.etapa} — confirmala o cambiala
+                        </span>
+                        <p>{sugerencia.evidencia}</p>
+                        {sugerencia.dudas && (
+                          <p className={estilos.sugerenciaDudas}>
+                            <b>Dudas:</b> {sugerencia.dudas}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className={estilos.campo}>

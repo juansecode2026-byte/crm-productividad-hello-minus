@@ -286,6 +286,74 @@ td .accion:disabled {
   font-size: 10.5px;
   color: var(--ink-3);
 }
+.pistaError {
+  font-size: 10.5px;
+  color: var(--error);
+}
+
+/* ---- sugerencia de etapa del agente ---- */
+.campoConAccion {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.campoConAccion select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.btnSugerir {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--acento);
+  border: 1px solid var(--acento);
+  border-radius: var(--radio);
+  padding: 0 10px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.btnSugerir:hover:not(:disabled) {
+  background: var(--acento-tenue);
+}
+.btnSugerir:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+.btnSugerir:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.sugerencia {
+  border: 1px solid var(--linea-fuerte);
+  border-left: 2px solid var(--acento);
+  border-radius: var(--radio-sm);
+  background: var(--panel);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sugerencia p {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.sugerenciaTit {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--acento);
+}
+.sugerenciaDudas {
+  border-top: 1px solid var(--linea);
+  padding-top: 5px;
+}
+.sugerenciaDudas b {
+  color: var(--alerta);
+  font-weight: 600;
+}
 .btn {
   font: inherit;
   font-size: 12px;

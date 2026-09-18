@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { contexto } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp, validar } from '../middleware/errores.js';
 import { estadisticasRepo } from '../services/github.js';
+import { sugerirEtapa } from '../services/sugeridorEtapa.js';
+
+const esquemaSugerencia = z.strictObject({
+  owner: z.string().trim().min(1),
+  repo: z.string().trim().min(1),
+});
 
 const esquemaVincular = z
   .strictObject({
@@ -46,6 +52,17 @@ repos.get('/candidatos', async (req, res) => {
   );
 
   res.json(conEstadisticas);
+});
+
+// Lo dispara el botón "Sugerir con IA" del panel de vinculación, nunca solo:
+// la etapa que devuelve prellena el selector y una persona la confirma antes
+// de que se guarde. Pasar de la etapa 2 congela el alcance de forma definitiva
+// (`cambiar_etapa_proyecto()`), así que esto sugiere y no decide.
+repos.post('/sugerir-etapa', async (req, res) => {
+  contexto(req); // Exige sesión: el agente cuesta plata, no queda abierto.
+  const { owner, repo } = validar(esquemaSugerencia, req.body);
+
+  res.json(await sugerirEtapa(owner, repo));
 });
 
 repos.post('/vincular', async (req, res) => {

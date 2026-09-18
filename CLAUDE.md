@@ -177,6 +177,17 @@ gobernar); `hitos` solo el líder o el admin (`gobernar_hitos`), igual que
 `candidatos_alcance` — lo que mueve las fechas comprometidas del proyecto no
 lo cambia cualquiera.
 
+**Ese límite está verificado contra la base real** (2026-09-18), no solo
+documentado: un miembro que no es encargado puede escribir `checklist_items`
+y recibe `42501` al intentar escribir `hitos`; el encargado sí puede. La
+prueba corrió dentro de una transacción revertida, sobrescribiendo
+`private.persona_actual()` y forzando `private.es_admin() = false` para
+aislar el camino de "encargado" del de "admin" — el DDL también se revierte,
+y se verificó después que las dos funciones volvieran a su definición
+original. **No se puede simular un usuario poniendo un `auth_user_id`
+inventado:** hay un FK contra `auth.users` que lo impide (y está bien que
+así sea).
+
 **Detector de rastro semanal** (`scripts/detectar_rastro_semanal.py`), con el
 Verificador de evidencia (agente 13) fusionado adentro por decisión de
 `docs/agentes-crm-productividad-hello-minus.md` — no se construye aparte.
@@ -359,17 +370,18 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
   estudia el branding de Hello Minus. Cuando se defina, usar el skill
   `criterios-ux-ui` y actualizar `src/lib/tokens.css`.
 
-- **Que los dos integrantes se registren en Supabase Auth.** `personas` ya
-  tiene los datos reales (2026-09-15); falta que cada quien cree su cuenta con
-  ese mismo email para que el trigger los enlace. Hasta entonces RLS deja la
-  base cerrada. Ver [db/README.md](db/README.md).
+- **Falta que Gabriel se registre en Supabase Auth.** Juan ya está enlazado
+  (verificado el 2026-09-18: el trigger de la migración 001 hizo su trabajo).
+  Gabriel todavía no, así que para él RLS sigue cerrada. Ver
+  [db/README.md](db/README.md).
 - Rol comercial separado de admin: ¿hace falta?
 - Detalle de las fases 05 y 07-13 (solo tienen título; la 03 y la 04 ya están
   detalladas arriba).
-- **Fase 03: falta probar `checklist` e `hitos` contra la base real.** Las
-  rutas están escritas y pasan `typecheck`, pero se construyeron con el
-  conector de Supabase caído, así que no se pudo hacer el sembrado /
-  verificación / limpieza que sí tienen el resto de las piezas. Pendiente
-  antes de darlas por cerradas.
+- **Nada de la Fase 03 tiene interfaz todavía.** Tareas semanales, bloqueos,
+  checklist e hitos existen solo como API — el dashboard sigue teniendo dos
+  pantallas (Login y Proyectos). Falta la pantalla de detalle de proyecto
+  (`/proyectos/:id`), que es donde irían las cuatro. Propuesta visual hecha el
+  2026-09-18, sobre los tokens de "Consola":
+  https://claude.ai/artifact/SgJVfxEV5NxFqm9mdVyyLW
 - Sembrar catálogos: `indicador_catalogo`, `indicador_aplicabilidad`,
   `roles_proyecto`, `canales_venta`.

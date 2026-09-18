@@ -43,17 +43,25 @@ secundaria. Documentación de diseño en [docs/](docs/).
   Definidas el 2026-09-17. No hay tabla catálogo — es vocabulario fijo, igual
   que un enum, documentado acá porque el "sale con" es texto largo:
 
-  | # | Etapa | Sale con |
-  |---|---|---|
-  | 1 | Descubrimiento y alcance | Claro para qué es el proyecto y quién lo pidió |
-  | 2 | Diseño y arquitectura | Esquema de datos y componentes listados. **Congela el alcance** (`alcance_congelado_en`) |
-  | 3 | Configuración del entorno | El proyecto corre local y despliega un "hola mundo" |
-  | 4 | Construcción del núcleo | Base de datos + backend + frontend funcionan de punta a punta, aunque sin pulir |
-  | 5 | Construcción de agentes de IA | Cada agente cumple contra casos de prueba reales |
-  | 6 | Integración | Un dato que entra por un canal llega correcto al otro extremo |
-  | 7 | Pruebas y aseguramiento | Sin errores críticos conocidos; agentes evaluados, no solo probados a ojo |
-  | 8 | Despliegue y piloto | Corrió en producción un tiempo razonable sin incidentes graves |
-  | 9 | Operación y mejora continua | No sale — es la etapa de reposo mientras el proyecto siga activo |
+  | # | Etapa | Qué se construye | Sale con |
+  |---|---|---|---|
+  | 1 | Descubrimiento y alcance | Nada técnico: notas, requisitos, para qué es y quién lo pidió | Claro para qué es el proyecto y quién lo pidió |
+  | 2 | Diseño y arquitectura | Modelo de datos, elección del stack, lista de componentes | Esquema de datos y componentes listados. **Congela el alcance** (`alcance_congelado_en`) |
+  | 3 | Configuración del entorno | Repos, hosting, variables de entorno, CI/CD, claves | El proyecto corre local y despliega un "hola mundo" |
+  | 4 | Construcción del núcleo | Base de datos, backend (API) y frontend (pantallas) | Los tres funcionan de punta a punta, aunque sin pulir |
+  | 5 | Construcción de agentes de IA | Prompts y herramientas de cada agente. También no-code (n8n, Zapier) **cuando decide algo**, no solo mueve datos | Cada agente cumple contra casos de prueba reales |
+  | 6 | Integración | Webhooks, APIs externas, backend↔frontend. Acá n8n **orquesta** sistemas que ya existen | Un dato que entra por un canal llega correcto al otro extremo |
+  | 7 | Pruebas y aseguramiento | Tests, evaluaciones de agentes, revisión de permisos y seguridad | Sin errores críticos conocidos; agentes evaluados, no solo probados a ojo |
+  | 8 | Despliegue y piloto | Puesta en producción real, con vigilancia cercana | Corrió en producción un tiempo razonable sin incidentes graves |
+  | 9 | Operación y mejora continua | Mantenimiento, features nuevas, correcciones del uso real | No sale — es la etapa de reposo mientras el proyecto siga activo |
+
+  **Dónde cae una herramienta no-code** (n8n, Zapier, Make): no tiene etapa
+  propia. Si *decide* algo, es etapa 5 como cualquier agente; si solo *mueve*
+  datos entre sistemas, es etapa 6.
+
+  Las dos columnas viven también en `frontend/dashboard/src/lib/etapas.ts`,
+  que es de donde las lee la interfaz al elegir la etapa de un proyecto. Si
+  cambian acá, cambian allá.
 
   **No todo proyecto pasa por las 9.** Es vocabulario compartido para que
   "en qué etapa está" se pueda comparar entre proyectos, no un camino

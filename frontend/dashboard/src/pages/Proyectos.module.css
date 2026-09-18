@@ -328,6 +328,41 @@ td .accion:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* La descripción de la etapa marcada. Va fija y no como tooltip porque un
+   <option> nativo no admite popovers propios y varios navegadores ignoran el
+   title — y porque para elegir entre dos etapas parecidas hay que poder
+   leerlas sin que desaparezcan al mover el mouse. */
+.queSeConstruye {
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-sm);
+  background: var(--panel);
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.queSeConstruye p {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.queSeConstruyeTit {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.saleCon {
+  border-top: 1px solid var(--linea);
+  padding-top: 4px;
+}
+.saleCon b {
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
 .sugerencia {
   border: 1px solid var(--linea-fuerte);
   border-left: 2px solid var(--acento);

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
-import { ETAPAS } from '../lib/etapas';
+import { buscarEtapa, ETAPAS } from '../lib/etapas';
 import { aFechaIso, tiempoRelativo } from '../lib/fechas';
 import type { Persona, Proyecto, RepoCandidato } from '../lib/tipos';
 import { listarPersonasActivas } from '../services/personasService';
@@ -45,6 +45,8 @@ export function Proyectos() {
   const [sugerencia, setSugerencia] = useState<SugerenciaEtapa | null>(null);
   const [sugiriendo, setSugiriendo] = useState(false);
   const [errorSugerencia, setErrorSugerencia] = useState<string | null>(null);
+
+  const etapaElegida = form?.etapa_inicial ? buscarEtapa(Number(form.etapa_inicial)) : undefined;
 
   async function cargarCandidatos() {
     setErrorCandidatos(null);
@@ -314,7 +316,10 @@ export function Proyectos() {
                       >
                         <option value="">— Elegir —</option>
                         {ETAPAS.map((etapa) => (
-                          <option key={etapa.numero} value={etapa.numero}>
+                          // title: el tooltip del sistema. Un <option> nativo no
+                          // admite nada propio, y varios navegadores lo ignoran —
+                          // por eso la descripción se muestra además abajo, fija.
+                          <option key={etapa.numero} value={etapa.numero} title={etapa.construye}>
                             {etapa.numero} · {etapa.nombre}
                           </option>
                         ))}
@@ -328,6 +333,20 @@ export function Proyectos() {
                         {sugiriendo ? 'Leyendo el repo…' : 'Sugerir con agente IA'}
                       </button>
                     </div>
+                    {etapaElegida ? (
+                      <div className={estilos.queSeConstruye}>
+                        <span className={estilos.queSeConstruyeTit}>Qué se construye acá</span>
+                        <p>{etapaElegida.construye}</p>
+                        <p className={estilos.saleCon}>
+                          <b>Sale con:</b> {etapaElegida.saleCon}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className={estilos.pista}>
+                        Elegí una etapa para ver qué se construye en ella
+                      </span>
+                    )}
+
                     <span className={estilos.pista}>Pasar la etapa 2 congela el alcance</span>
 
                     {sugiriendo && (

@@ -313,7 +313,11 @@ export function Proyecto() {
               const registro = historialPorEtapa.get(etapa.numero);
               const dias = registro ? diasEntre(registro.entra_en, registro.sale_en) : null;
               return (
-                <div key={etapa.numero} className={`${estilos.etapa} ${estilos[est]}`}>
+                <div
+                  key={etapa.numero}
+                  className={`${estilos.etapa} ${estilos[est]}`}
+                  title={`${etapa.nombre} — ${etapa.construye}`}
+                >
                   <div className={estilos.barraEtapa} />
                   <div className={estilos.numEtapa}>{String(etapa.numero).padStart(2, '0')}</div>
                   <div className={estilos.nombreEtapa}>{etapa.nombre}</div>

@@ -3,7 +3,9 @@ import { z } from 'zod';
 import { contexto, type ClienteSupabase } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp, errorSinFila, validar } from '../middleware/errores.js';
 import { bloqueos } from './bloqueos.js';
+import { checklist } from './checklist.js';
 import { claves } from './claves.js';
+import { hitos } from './hitos.js';
 import { miembros } from './miembros.js';
 import { tareas } from './tareas.js';
 
@@ -144,3 +146,5 @@ proyectos.use('/:proyectoId/miembros', miembros);
 proyectos.use('/:proyectoId/claves', claves);
 proyectos.use('/:proyectoId/tareas', tareas);
 proyectos.use('/:proyectoId/bloqueos', bloqueos);
+proyectos.use('/:proyectoId/checklist', checklist);
+proyectos.use('/:proyectoId/hitos', hitos);

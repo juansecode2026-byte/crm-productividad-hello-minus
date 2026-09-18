@@ -106,6 +106,8 @@ miembros y personas.
 | `PATCH` · `DELETE /proyectos/:id/tareas/:tareaId` | Solo quien la tiene asignada o admin (RLS) |
 | `POST /proyectos/:id/bloqueos` | Abre un bloqueo — siempre a nombre de quien lo crea, no hay "abrir a nombre de otro" |
 | `POST /proyectos/:id/bloqueos/:bloqueoId/resolver` | Cierra el bloqueo (`resuelto_en`, `resuelto_por` = quien resuelve). No se puede resolver dos veces |
+| `POST` · `PATCH` · `DELETE /proyectos/:id/checklist[/:itemId]` | Ítem de checklist por etapa. `completado_por`/`completado_en` los fija el servidor al marcar; desmarcar los limpia. Miembro, líder o admin (RLS) |
+| `POST` · `PATCH` · `DELETE /proyectos/:id/hitos[/:hitoId]` | Hito, con `etapa` opcional. Marcar `estado = cumplido` sin `fecha_real` la fija en hoy; si el body la trae, se respeta (sirve para cargar historia vieja). Solo líder o admin (RLS) |
 
 **`repos_candidatos`** (tabla nueva, `db/migrations/005`) es la lista de vigilancia
 del admin — repos que interesa vincular, no un rastreo de toda una cuenta de
@@ -162,11 +164,18 @@ de Hello Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.
 (+ `VITE_API_URL`), y `npm run dev`. Necesita la API corriendo en paralelo
 para crear proyectos.
 
-## Fase 03 — Tareas semanales, bloqueos y Detector de rastro
+## Fase 03 — Etapas, checklist, tareas semanales, bloqueos y Detector de rastro
 
-`tareas_semanales` y `bloqueos` ya tenían RLS completo desde la Fase 01
-(`db/policies/001_baseline.sql`) — lo que faltaba era la capa de API (rutas
-arriba) y el agente 04 del catálogo.
+`tareas_semanales`, `bloqueos`, `checklist_items` e `hitos` ya tenían RLS
+completo desde la Fase 01 (`db/policies/001_baseline.sql`) — lo que faltaba
+era la capa de API (rutas arriba) y el agente 04 del catálogo. Ninguna de las
+cuatro necesitó migración.
+
+**Quién escribe qué, según el RLS que ya existía:** `checklist_items` y
+`bloqueos` los escribe cualquier miembro del proyecto (aportar no es
+gobernar); `hitos` solo el líder o el admin (`gobernar_hitos`), igual que
+`candidatos_alcance` — lo que mueve las fechas comprometidas del proyecto no
+lo cambia cualquiera.
 
 **Detector de rastro semanal** (`scripts/detectar_rastro_semanal.py`), con el
 Verificador de evidencia (agente 13) fusionado adentro por decisión de
@@ -357,9 +366,10 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 - Rol comercial separado de admin: ¿hace falta?
 - Detalle de las fases 05 y 07-13 (solo tienen título; la 03 y la 04 ya están
   detalladas arriba).
-- **Dentro de la Fase 03:** `checklist_items` y `hitos` (por etapa) quedaron
-  sin construir — tareas semanales, bloqueos y el Detector de rastro sí están
-  completos. `historial_etapas` ya se llena solo desde
-  `cambiar_etapa_proyecto()` (Fase 02).
+- **Fase 03: falta probar `checklist` e `hitos` contra la base real.** Las
+  rutas están escritas y pasan `typecheck`, pero se construyeron con el
+  conector de Supabase caído, así que no se pudo hacer el sembrado /
+  verificación / limpieza que sí tienen el resto de las piezas. Pendiente
+  antes de darlas por cerradas.
 - Sembrar catálogos: `indicador_catalogo`, `indicador_aplicabilidad`,
   `roles_proyecto`, `canales_venta`.

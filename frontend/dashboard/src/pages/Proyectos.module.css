@@ -292,13 +292,16 @@ td .accion:disabled {
 }
 
 /* ---- sugerencia de etapa del agente ---- */
+/* En columna y no al lado del selector: el panel mide 300px y el nombre de la
+   etapa ya es largo ("Construcción de agentes de IA"). Compartiendo fila, el
+   selector quedaba ilegible. */
 .campoConAccion {
   display: flex;
-  gap: 6px;
-  align-items: stretch;
+  flex-direction: column;
+  gap: 5px;
 }
 .campoConAccion select {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 .btnSugerir {
@@ -310,8 +313,8 @@ td .accion:disabled {
   color: var(--acento);
   border: 1px solid var(--acento);
   border-radius: var(--radio);
-  padding: 0 10px;
-  flex: 0 0 auto;
+  padding: 6px 10px;
+  align-self: flex-start;
   white-space: nowrap;
 }
 .btnSugerir:hover:not(:disabled) {

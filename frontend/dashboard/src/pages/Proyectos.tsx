@@ -325,7 +325,7 @@ export function Proyectos() {
                         onClick={pedirSugerencia}
                         disabled={enviando || sugiriendo}
                       >
-                        {sugiriendo ? 'leyendo…' : 'Sugerir'}
+                        {sugiriendo ? 'Leyendo el repo…' : 'Sugerir con agente IA'}
                       </button>
                     </div>
                     <span className={estilos.pista}>Pasar la etapa 2 congela el alcance</span>

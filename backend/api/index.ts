@@ -13,8 +13,14 @@ app.disable('x-powered-by');
 app.use(corsAcotado);
 app.use(express.json({ limit: '100kb' }));
 
+// Nunca el valor, solo si están cargadas — sirve para diagnosticar sin
+// exponer nada: "¿el backend arrancó con las claves opcionales puestas?".
 app.get('/salud', (_req, res) => {
-  res.json({ estado: 'ok' });
+  res.json({
+    estado: 'ok',
+    githubTokenCargado: Boolean(config.GITHUB_TOKEN),
+    anthropicApiKeyCargada: Boolean(config.ANTHROPIC_API_KEY),
+  });
 });
 
 app.use('/proyectos', exigirSesion, proyectos);

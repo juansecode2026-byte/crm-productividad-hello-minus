@@ -1,6 +1,6 @@
 ---
 titulo: Paso a Paso para Vincular Proyectos — Hello Minus
-fuente: paso-a-paso-vincular-proyectos-hello-minus.html
+fuente: fuente-html/paso-a-paso-vincular-proyectos-hello-minus.html
 convertido: 2026-08-28
 ---
 

@@ -1,6 +1,6 @@
 ---
 titulo: Fases · CRM de Productividad Hello Minus
-fuente: fases-crm-productividad-hello-minus.html
+fuente: fuente-html/fases-crm-productividad-hello-minus.html
 convertido: 2026-08-28
 actualizado: 2026-08-28 (v2 — 32 tablas, 9 bloques, sección RLS ampliada)
 ---

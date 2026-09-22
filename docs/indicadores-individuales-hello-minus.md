@@ -1,6 +1,6 @@
 ---
 titulo: Indicadores Individuales — Hello Minus
-fuente: indicadores-individuales-hello-minus.html
+fuente: fuente-html/indicadores-individuales-hello-minus.html
 convertido: 2026-08-28
 ---
 

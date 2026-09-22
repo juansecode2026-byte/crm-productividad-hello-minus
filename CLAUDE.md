@@ -13,6 +13,12 @@ combinando actividad de GitHub, telemetría de agentes / Claude Code e
 indicadores calculados. No es un CRM comercial: la capa comercial existe pero es
 secundaria. Documentación de diseño en [docs/](docs/).
 
+**En `docs/`, el `.md` es la fuente — el `.html` correspondiente en
+`docs/fuente-html/` es el original del que se convirtió (2026-08-28), no algo
+para leer de nuevo.** No abrir esos `.html` salvo que el usuario pida
+puntualmente revisar el formato original: son 4 archivos de ~30-40 KB cada uno,
+gastan contexto sin agregar nada que el `.md` no tenga ya.
+
 ## Flujo / arquitectura
 
 - **Fuentes de datos**, ninguna lee la base de otro proyecto directamente:

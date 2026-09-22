@@ -172,7 +172,9 @@ export type Database = {
           completado: boolean
           completado_en: string | null
           completado_por: string | null
+          detectado_en: string | null
           etapa: number
+          evidencia: string | null
           id: string
           proyecto_id: string
           texto: string
@@ -181,7 +183,9 @@ export type Database = {
           completado?: boolean
           completado_en?: string | null
           completado_por?: string | null
+          detectado_en?: string | null
           etapa: number
+          evidencia?: string | null
           id?: string
           proyecto_id: string
           texto: string
@@ -190,7 +194,9 @@ export type Database = {
           completado?: boolean
           completado_en?: string | null
           completado_por?: string | null
+          detectado_en?: string | null
           etapa?: number
+          evidencia?: string | null
           id?: string
           proyecto_id?: string
           texto?: string
@@ -211,6 +217,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      checklist_plantilla: {
+        Row: {
+          activo: boolean
+          etapa: number
+          id: string
+          orden: number
+          texto: string
+        }
+        Insert: {
+          activo?: boolean
+          etapa: number
+          id?: string
+          orden?: number
+          texto: string
+        }
+        Update: {
+          activo?: boolean
+          etapa?: number
+          id?: string
+          orden?: number
+          texto?: string
+        }
+        Relationships: []
       }
       claves_ingesta: {
         Row: {

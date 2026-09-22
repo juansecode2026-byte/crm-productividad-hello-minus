@@ -26,7 +26,9 @@ anterior ya corrió.
 | 9 | `migrations/007_claves_ingesta.sql` | Claves por proyecto del endpoint de telemetría (solo el hash). |
 | 10 | `migrations/008_registrar_sesion_claude_code.sql` | Fusión de los lotes de OpenTelemetry en una sola sesión. |
 | 11 | `migrations/009_registro_tiempo_inferido.sql` | `registro_tiempo` pasa a ser de solo-sistema: se retiran las políticas de escritura de personas y se agrega el constraint único que necesita el derivador para hacer upsert. |
-| 12+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 12 | `migrations/010_tarea_evidencia_unica.sql` | Constraint único para que el Detector de rastro no duplique evidencia al repetir corridas. |
+| 13 | `migrations/011_checklist_plantilla.sql` | `checklist_plantilla` (ítems base por etapa, editables) + `detectado_en`/`evidencia` en `checklist_items` + constraint único para sembrar sin duplicar. Aplicada 2026-09-22. |
+| 14+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base
@@ -92,6 +94,26 @@ Consecuencia aceptada a propósito: solo se cuenta tiempo que pasó por Claude
 Code. Reuniones, llamadas con cliente o trabajo sin el agente no entran —  es
 la aproximación elegida a cambio de no depender de que alguien registre horas
 a mano todos los días.
+
+## El tercer estado de `checklist_items`
+
+Decidido el 2026-09-22 (migración 011). `completado` significa **una persona lo
+marcó**, y nada más. El Verificador de checklist (agente) nunca lo toca:
+escribe `detectado_en` y `evidencia`, que juntos significan "creo que esto ya
+está hecho, confirmalo". La interfaz los muestra en ámbar, con un botón
+"Confirmar" por ítem — no hay "confirmar todos", se descartó a propósito: si
+dos detecciones de tres son buenas, aceptar el lote entero obligaría a tragarse
+la mala.
+
+Es la misma regla que ya rige `candidatos_alcance` — ningún agente aprueba
+solo — y acá importa por lo mismo: el agente infiere **desde afuera** del
+repositorio (ve que un archivo existe, no que funcione), así que un falso
+positivo marcado solo ensuciaría el porcentaje de la etapa sin que nadie lo
+revisara.
+
+`checklist_plantilla`, en cambio, **sí es tabla editable** y no constante en el
+código como las 9 etapas: son los ítems base que se copian a cada proyecto al
+escanear, y se decidió que el admin pueda ajustarlos sin desplegar.
 
 ## Funciones auxiliares
 

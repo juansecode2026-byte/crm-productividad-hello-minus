@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Database } from '../database.types.js';
 import { contexto } from '../middleware/autenticacion.js';
 import { desdeSupabase, errorSinFila, validar } from '../middleware/errores.js';
+import { escanearChecklist } from '../services/verificadorChecklist.js';
 
 const esquemaCrear = z.strictObject({
   etapa: z.number().int().min(1).max(9),
@@ -25,6 +26,17 @@ const esquemaProyecto = z.object({ proyectoId: z.uuid() });
 const esquemaItem = z.object({ proyectoId: z.uuid(), itemId: z.uuid() });
 
 export const checklist = Router({ mergeParams: true });
+
+// Lo dispara el botón "Escanear con agente IA". Siembra los ítems de la
+// plantilla que falten y marca cuáles el agente cree ya hechos — en
+// `detectado_en`/`evidencia`, nunca en `completado`: eso lo mueve una persona
+// confirmando ítem por ítem con el PATCH de abajo.
+checklist.post('/escanear', async (req, res) => {
+  const { supabase } = contexto(req);
+  const { proyectoId } = validar(esquemaProyecto, req.params);
+
+  res.json(await escanearChecklist(supabase, proyectoId));
+});
 
 checklist.post('/', async (req, res) => {
   const { supabase } = contexto(req);

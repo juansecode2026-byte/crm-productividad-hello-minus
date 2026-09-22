@@ -52,6 +52,18 @@ interface ArbolApi {
   truncated: boolean;
 }
 
+// Tope de lo que se le manda al agente. Empezó en 12.000 y se subió el
+// 2026-09-22 después de una prueba real: con ese corte, el CLAUDE.md de este
+// propio repo (28 KB) llegaba al 43%, y la sección que declaraba "probado
+// contra datos reales" quedaba afuera — el agente respondió que esa
+// declaración no existía. Tenía razón sobre lo que vio; el problema era el
+// recorte. Cortar a la mitad justo la señal más explícita anula el motivo de
+// leer el archivo.
+//
+// 40.000 caracteres son ~10k tokens. Como esto lo dispara una persona un
+// puñado de veces por proyecto, el costo no es la restricción.
+const MAX_CLAUDE_MD = 40_000;
+
 async function api<T>(ruta: string): Promise<T | null> {
   const respuesta = await fetch(`https://api.github.com${ruta}`, { headers: CABECERAS });
   if (!respuesta.ok) return null;
@@ -177,4 +189,18 @@ export async function estructuraRepo(owner: string, repo: string): Promise<Estru
     totalArchivos,
     truncado: arbol.truncated,
   };
+}
+
+// La señal más directa que existe, cuando existe: un CLAUDE.md al día declara
+// en texto qué está construido, en vez de obligar a deducirlo de la forma de
+// las carpetas. Es opcional a propósito — la mayoría de los repos no lo tiene,
+// y el agente tiene que seguir funcionando igual sin él.
+export async function leerClaudeMd(owner: string, repo: string): Promise<string | null> {
+  const archivo = await api<{ content?: string; encoding?: string }>(
+    `/repos/${owner}/${repo}/contents/CLAUDE.md`,
+  );
+  if (!archivo?.content || archivo.encoding !== 'base64') return null;
+
+  const texto = Buffer.from(archivo.content, 'base64').toString('utf-8');
+  return texto.length > MAX_CLAUDE_MD ? `${texto.slice(0, MAX_CLAUDE_MD)}\n\n[...recortado]` : texto;
 }

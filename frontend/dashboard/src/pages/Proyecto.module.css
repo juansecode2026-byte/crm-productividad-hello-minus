@@ -209,7 +209,173 @@
   }
 }
 
-/* ---------------- checklist ---------------- */
+/* ---------------- checklist por etapa ---------------- */
+.btnAgente {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--acento);
+  border: 1px solid var(--acento);
+  border-radius: var(--radio);
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+.btnAgente:hover:not(:disabled) {
+  background: var(--acento-tenue);
+}
+.btnAgente:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+.btnAgente:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.avisoEscaneo {
+  background: var(--acento-tenue);
+  color: var(--ink-2);
+  border-radius: var(--radio-sm);
+  padding: 7px 10px;
+  font-size: 11.5px;
+  margin: 0 0 8px;
+}
+
+/* Resumen general: el número primero, como en cualquier herramienta de la
+   categoría — después el detalle por etapa. */
+.resumen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.resumenCifra {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+.resumenBarra {
+  flex: 1 1 120px;
+  min-width: 90px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--linea-fuerte);
+  overflow: hidden;
+  display: flex;
+}
+.resumenHecho {
+  background: var(--ok);
+  height: 100%;
+}
+.resumenEsperando {
+  background: var(--alerta);
+  height: 100%;
+}
+.resumenTexto {
+  flex: 1 1 auto;
+  min-width: 150px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.resumenTexto b {
+  color: var(--ink-2);
+}
+.esperandoTit {
+  color: var(--alerta);
+}
+
+/* Cada etapa colapsa sola: <details> nativo, sin librería. Se abren por
+   defecto solo la etapa actual y las que tienen algo esperando confirmación. */
+.grupoEtapa {
+  border-bottom: 1px solid var(--linea);
+}
+.grupoEtapa:last-of-type {
+  border-bottom: 0;
+}
+.grupoCab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  flex-wrap: wrap;
+}
+.grupoCab::-webkit-details-marker {
+  display: none;
+}
+.grupoCab:hover {
+  background: var(--panel);
+}
+.grupoEtapa summary:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: -2px;
+}
+.chevron {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  width: 10px;
+  text-align: center;
+  flex: 0 0 auto;
+  transition: transform 0.1s ease;
+}
+.grupoEtapa[open] .chevron {
+  transform: rotate(90deg);
+}
+.grupoNum {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-sm);
+  padding: 0 5px;
+  flex: 0 0 auto;
+}
+.grupoNombre {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.grupoCuenta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+.medidor {
+  width: 52px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--linea-fuerte);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.medidor > span {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+}
+.medidor.parcial > span {
+  background: var(--alerta);
+}
+.medidor.vacioMedidor > span {
+  background: var(--dormido);
+}
+
 .lista {
   list-style: none;
   margin: 0;
@@ -270,6 +436,53 @@
   font-size: 10.5px;
   color: var(--ink-3);
   margin-top: 2px;
+}
+
+/* Tercer estado: el agente lo propuso, nadie lo confirmó todavía. Ámbar y
+   con borde punteado a propósito — tiene que verse distinto de lo confirmado,
+   no parecido. */
+.item.detectado .caja {
+  background: var(--alerta-tenue);
+  border-color: var(--alerta);
+  border-style: dashed;
+  color: var(--alerta);
+}
+.firmaAgente {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--alerta);
+  margin-top: 2px;
+}
+.evidencia {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 3px;
+  line-height: 1.45;
+  border-left: 2px solid var(--linea-fuerte);
+  padding-left: 8px;
+}
+.item.detectado .evidencia {
+  border-left-color: var(--alerta);
+}
+.accionConfirmar {
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--alerta);
+  border: 1px solid var(--alerta);
+  border-radius: var(--radio-sm);
+  padding: 3px 8px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.accionConfirmar:hover {
+  background: var(--alerta-tenue);
+}
+.accionConfirmar:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
 }
 .borrar {
   background: none;

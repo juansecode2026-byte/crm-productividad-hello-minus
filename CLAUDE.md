@@ -122,6 +122,7 @@ miembros y personas.
 | `POST /proyectos/:id/bloqueos` | Abre un bloqueo — siempre a nombre de quien lo crea, no hay "abrir a nombre de otro" |
 | `POST /proyectos/:id/bloqueos/:bloqueoId/resolver` | Cierra el bloqueo (`resuelto_en`, `resuelto_por` = quien resuelve). No se puede resolver dos veces |
 | `POST` · `PATCH` · `DELETE /proyectos/:id/checklist[/:itemId]` | Ítem de checklist por etapa. `completado_por`/`completado_en` los fija el servidor al marcar; desmarcar los limpia. Miembro, líder o admin (RLS) |
+| `POST /proyectos/:id/checklist/escanear` | Lanza el Verificador de checklist: siembra de `checklist_plantilla` lo que falte y marca `detectado_en`/`evidencia`. **Nunca toca `completado`** — eso lo confirma una persona, ítem por ítem |
 | `POST` · `PATCH` · `DELETE /proyectos/:id/hitos[/:hitoId]` | Hito, con `etapa` opcional. Marcar `estado = cumplido` sin `fecha_real` la fija en hoy; si el body la trae, se respeta (sirve para cargar historia vieja). Solo líder o admin (RLS) |
 
 **`repos_candidatos`** (tabla nueva, `db/migrations/005`) es la lista de vigilancia
@@ -405,6 +406,38 @@ Python aparte, o Edge Function si algún día los agentes fueran TypeScript).
 
 Detalle importante de Windows: `ejecutar.py` fuerza `stdout` a UTF-8. Sin eso
 Python escribe en cp1252 y los acentos llegan rotos a Node ("d�as").
+
+### Verificador de checklist (`backend/agent/verificador_checklist/`)
+
+Tercer agente con LLM. Lo dispara el botón "Generar con agente IA" de la
+pantalla de detalle: lee el repositorio y decide, ítem por ítem, qué del
+checklist ya está hecho, con evidencia. Ver su README para el detalle.
+
+- **Nunca escribe `completado`.** Solo `detectado_en` y `evidencia`
+  (migración 011). Confirmar es un clic humano, ítem por ítem — no hay
+  "confirmar todos", se descartó a propósito: si 2 de 3 detecciones son buenas
+  y una no, aceptar el lote entero obligaría a tragarse la mala.
+- Los ítems ya confirmados **no se le mandan**: no puede decir nada que cambie
+  algo, y no gasta tokens.
+- **Lee el `CLAUDE.md` del repo ajeno si lo tiene** (`leerClaudeMd` en
+  `services/github.ts`). Es la señal más fuerte que hay —una persona
+  declarando qué construyó, en vez de deducirlo de la forma de las carpetas—
+  pero el prompt le pide desconfiar si contradice la estructura, y distinguir
+  planes de hechos.
+- El tope de lectura de ese archivo son **40.000 caracteres**, subido desde
+  12.000 el 2026-09-22 tras una prueba real: con el tope viejo, el `CLAUDE.md`
+  de este repo (28 KB) llegaba al 43% y el agente respondía que faltaban
+  declaraciones que sí estaban, más abajo.
+
+**`checklist_plantilla`** (migración 011) son los ~31 ítems base por etapa,
+iguales para todos los proyectos. **Es tabla y no constante en el código**, a
+diferencia de las 9 etapas, porque se decidió que se pueda ajustar sin
+desplegar. El escaneo siembra en `checklist_items` lo que falte (idempotente
+por `checklist_item_unico`) y después juzga.
+
+**El puente Node→Python se movió** a `services/agentePython.ts` cuando
+apareció el segundo agente de este tipo: `sugeridorEtapa.ts` y
+`verificadorChecklist.ts` lo comparten en vez de repetir el manejo de proceso.
 
 ## Base de datos
 

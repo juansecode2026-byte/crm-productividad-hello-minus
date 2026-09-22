@@ -31,6 +31,9 @@ export interface HistorialEtapa {
   sale_en: string | null;
 }
 
+// Tres estados, no dos: `completado` lo marca una persona; `detectado_en` lo
+// llena el agente al escanear y solo significa "creo que esto ya está hecho,
+// confirmalo". Ver db/migrations/011.
 export interface ChecklistItem {
   id: string;
   proyecto_id: string;
@@ -39,6 +42,15 @@ export interface ChecklistItem {
   completado: boolean;
   completado_por: string | null;
   completado_en: string | null;
+  detectado_en: string | null;
+  evidencia: string | null;
+}
+
+export interface ResultadoEscaneo {
+  sembrados: number;
+  detectados: number;
+  revisados: number;
+  leyoClaudeMd: boolean;
 }
 
 export interface Hito {

@@ -12,6 +12,7 @@ import {
 import {
   borrarItemChecklist,
   crearItemChecklist,
+  escanearChecklist as escanearChecklistService,
   listarChecklist,
   marcarItemChecklist,
 } from '../services/checklistService';
@@ -88,6 +89,32 @@ export function Proyecto() {
   const [nuevoItemTexto, setNuevoItemTexto] = useState('');
   const [nuevoItemEtapa, setNuevoItemEtapa] = useState(String(proyecto?.etapa_actual ?? 1));
   const [enviandoItem, setEnviandoItem] = useState(false);
+  const [escaneando, setEscaneando] = useState(false);
+  const [errorEscaneo, setErrorEscaneo] = useState<string | null>(null);
+  const [resumenEscaneo, setResumenEscaneo] = useState<string | null>(null);
+
+  // El agente propone; `completado` lo sigue moviendo solo una persona. Por eso
+  // después de escanear se recarga todo: lo que cambió son `detectado_en` y
+  // `evidencia`, no lo que alguien ya había confirmado.
+  async function escanear() {
+    setErrorEscaneo(null);
+    setResumenEscaneo(null);
+    setEscaneando(true);
+    try {
+      const resultado = await escanearChecklistService(proyectoId);
+      await cargarTodo();
+      const partes = [
+        `${resultado.detectados} de ${resultado.revisados} ítems detectados como hechos`,
+        resultado.sembrados > 0 ? `${resultado.sembrados} sembrados de la plantilla` : null,
+        resultado.leyoClaudeMd ? 'leyó el CLAUDE.md del repo' : 'el repo no tiene CLAUDE.md',
+      ].filter(Boolean);
+      setResumenEscaneo(`${partes.join(' · ')}. Confirmá los que correspondan.`);
+    } catch (excepcion) {
+      setErrorEscaneo(excepcion instanceof Error ? excepcion.message : 'No se pudo escanear el repositorio');
+    } finally {
+      setEscaneando(false);
+    }
+  }
 
   async function alternarItem(item: ChecklistItem) {
     const anterior = checklist;
@@ -264,9 +291,25 @@ export function Proyecto() {
     );
   }
 
-  const checklistPendientes = checklist.filter((i) => !i.completado).length;
   const hitosVencidos = hitos.filter((h) => h.estado === 'vencido').length;
   const bloqueosAbiertos = bloqueos.filter((b) => !b.resuelto_en).length;
+
+  const totalConfirmados = checklist.filter((i) => i.completado).length;
+  const totalDetectados = checklist.filter((i) => !i.completado && i.detectado_en !== null).length;
+  const porcentajeChecklist =
+    checklist.length === 0 ? 0 : Math.round((totalConfirmados / checklist.length) * 100);
+
+  // Solo las etapas que tienen ítems: un proyecto sin agentes de IA no muestra
+  // la etapa 5 vacía, igual que el rail de arriba no la marca como pendiente.
+  const porEtapa = ETAPAS.map((etapa) => {
+    const items = checklist.filter((item) => item.etapa === etapa.numero);
+    return {
+      etapa,
+      items,
+      confirmados: items.filter((i) => i.completado).length,
+      detectados: items.filter((i) => !i.completado && i.detectado_en !== null).length,
+    };
+  }).filter((grupo) => grupo.items.length > 0);
 
   return (
     <AppShell>
@@ -343,47 +386,149 @@ export function Proyecto() {
 
       <div className={estilos.rejilla}>
         <div className={estilos.columna}>
-          {/* ---------------- checklist ---------------- */}
+          {/* ---------------- checklist por etapa ---------------- */}
           <section className={estilos.seccion}>
             <div className={estilos.encabezadoSeccion}>
-              <h2>
-                Checklist{checklistPendientes > 0 && <span className={estilos.conteo}>{checklistPendientes}</span>}
-              </h2>
-              <span className={estilos.permiso}>lo marca cualquier miembro</span>
+              <h2>Checklist por etapa</h2>
+              <button
+                type="button"
+                className={estilos.btnAgente}
+                onClick={escanear}
+                disabled={escaneando}
+              >
+                {escaneando ? 'Leyendo el repo…' : checklist.length === 0 ? 'Generar con agente IA' : 'Volver a escanear'}
+              </button>
             </div>
+
+            {errorEscaneo && (
+              <p className={estilos.error} role="alert">
+                {errorEscaneo}
+              </p>
+            )}
+
+            {resumenEscaneo && !escaneando && (
+              <p className={estilos.avisoEscaneo} role="status">
+                {resumenEscaneo}
+              </p>
+            )}
+
+            {checklist.length > 0 && (
+              <div className={estilos.resumen}>
+                <span className={estilos.resumenCifra}>{porcentajeChecklist}%</span>
+                <span className={estilos.resumenBarra}>
+                  <span className={estilos.resumenHecho} style={{ width: `${porcentajeChecklist}%` }} />
+                  <span
+                    className={estilos.resumenEsperando}
+                    style={{ width: `${Math.round((totalDetectados / checklist.length) * 100)}%` }}
+                  />
+                </span>
+                <span className={estilos.resumenTexto}>
+                  <b>
+                    {totalConfirmados} de {checklist.length}
+                  </b>{' '}
+                  confirmados
+                  {totalDetectados > 0 && (
+                    <>
+                      {' · '}
+                      <span className={estilos.esperandoTit}>{totalDetectados} esperando tu confirmación</span>
+                    </>
+                  )}
+                </span>
+              </div>
+            )}
+
             <div className={estilos.bloque}>
-              {checklist.length === 0 && <p className={estilos.vacio}>Todavía no hay ítems de checklist.</p>}
-              <ul className={estilos.lista}>
-                {checklist.map((item) => (
-                  <li key={item.id} className={`${estilos.item} ${item.completado ? estilos.hecho : ''}`}>
-                    <button
-                      type="button"
-                      className={estilos.caja}
-                      onClick={() => alternarItem(item)}
-                      aria-pressed={item.completado}
-                      aria-label={item.completado ? 'Marcar como pendiente' : 'Marcar como completado'}
+              {checklist.length === 0 && !escaneando && (
+                <p className={estilos.vacio}>
+                  Este proyecto todavía no tiene checklist. Generalo con el agente: lee el
+                  repositorio y propone qué está hecho y qué falta.
+                </p>
+              )}
+
+              {porEtapa.map(({ etapa, items, confirmados, detectados }) => (
+                <details
+                  key={etapa.numero}
+                  // Abiertas por defecto solo las que piden algo: la etapa
+                  // actual, o cualquiera con ítems detectados sin confirmar.
+                  open={etapa.numero === proyecto.etapa_actual || detectados > 0}
+                  className={estilos.grupoEtapa}
+                >
+                  <summary className={estilos.grupoCab}>
+                    <span className={estilos.chevron} aria-hidden="true">
+                      ▸
+                    </span>
+                    <span className={estilos.grupoNum}>{String(etapa.numero).padStart(2, '0')}</span>
+                    <span className={estilos.grupoNombre}>{etapa.nombre}</span>
+                    <span
+                      className={`${estilos.medidor} ${
+                        confirmados === items.length ? '' : confirmados === 0 ? estilos.vacioMedidor : estilos.parcial
+                      }`}
                     >
-                      {item.completado ? '✓' : ''}
-                    </button>
-                    <div className={estilos.cuerpoItem}>
-                      <div className={estilos.textoItem}>{item.texto}</div>
-                      <div className={item.completado ? estilos.firma : estilos.sinFirma}>
-                        {item.completado
-                          ? `${nombrePersona(item.completado_por)} · ${fechaCorta(item.completado_en)}`
-                          : `etapa ${item.etapa} · sin marcar`}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className={estilos.borrar}
-                      onClick={() => eliminarItem(item)}
-                      aria-label="Borrar ítem"
-                    >
-                      ✕
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      <span style={{ width: `${Math.round((confirmados / items.length) * 100)}%` }} />
+                    </span>
+                    <span className={estilos.grupoCuenta}>
+                      {confirmados} de {items.length}
+                    </span>
+                  </summary>
+
+                  <ul className={estilos.lista}>
+                    {items.map((item) => {
+                      const detectado = !item.completado && item.detectado_en !== null;
+                      return (
+                        <li
+                          key={item.id}
+                          className={`${estilos.item} ${item.completado ? estilos.hecho : ''} ${
+                            detectado ? estilos.detectado : ''
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className={estilos.caja}
+                            onClick={() => alternarItem(item)}
+                            aria-pressed={item.completado}
+                            aria-label={item.completado ? 'Marcar como pendiente' : 'Marcar como completado'}
+                          >
+                            {item.completado || detectado ? '✓' : ''}
+                          </button>
+                          <div className={estilos.cuerpoItem}>
+                            <div className={estilos.textoItem}>{item.texto}</div>
+                            {item.evidencia && <div className={estilos.evidencia}>{item.evidencia}</div>}
+                            <div
+                              className={
+                                item.completado ? estilos.firma : detectado ? estilos.firmaAgente : estilos.sinFirma
+                              }
+                            >
+                              {item.completado
+                                ? `confirmado por ${nombrePersona(item.completado_por)} · ${fechaCorta(item.completado_en)}`
+                                : detectado
+                                  ? 'detectado por el agente · sin confirmar'
+                                  : 'sin marcar'}
+                            </div>
+                          </div>
+                          {detectado && (
+                            <button
+                              type="button"
+                              className={estilos.accionConfirmar}
+                              onClick={() => alternarItem(item)}
+                            >
+                              Confirmar
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className={estilos.borrar}
+                            onClick={() => eliminarItem(item)}
+                            aria-label="Borrar ítem"
+                          >
+                            ✕
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </details>
+              ))}
+
               <form className={estilos.formInline} onSubmit={agregarItem}>
                 <select
                   value={nuevoItemEtapa}
@@ -400,7 +545,7 @@ export function Proyecto() {
                 <input
                   value={nuevoItemTexto}
                   onChange={(e) => setNuevoItemTexto(e.target.value)}
-                  placeholder="Agregar ítem de checklist..."
+                  placeholder="Agregar ítem propio de este proyecto..."
                   disabled={enviandoItem}
                 />
                 <button type="submit" disabled={enviandoItem || !nuevoItemTexto.trim()}>

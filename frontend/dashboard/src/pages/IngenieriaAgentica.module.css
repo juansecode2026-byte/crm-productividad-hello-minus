@@ -1,0 +1,172 @@
+.cabecera {
+  padding: 16px 16px 0;
+}
+.miga {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.03em;
+}
+.cabecera h1 {
+  font-size: 19px;
+  margin: 4px 0 6px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.desc {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 64ch;
+}
+
+.seccion {
+  padding: 16px;
+}
+.encabezadoSeccion {
+  margin-bottom: 8px;
+}
+.encabezadoSeccion h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin: 0;
+}
+
+.leyenda {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--guia-tenue);
+  border-left: 3px solid var(--guia);
+  border-radius: 0 8px 8px 0;
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+.leyendaRotulo {
+  font-weight: 600;
+  color: var(--guia);
+}
+.li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.li svg {
+  width: 26px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--ink-3);
+}
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+.tarjeta {
+  display: block;
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  padding: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.1s;
+}
+.tarjeta:hover {
+  border-color: var(--acento);
+}
+.tarjeta:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+.tnombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.tque {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin: 3px 0 12px;
+  line-height: 1.5;
+}
+
+.forma {
+  background: var(--panel);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 10px 6px;
+  margin-bottom: 10px;
+}
+
+.pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pill {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--linea-fuerte);
+  color: var(--ink-3);
+}
+.pill.harness {
+  border-color: var(--acento);
+  color: var(--acento);
+  background: var(--acento-tenue);
+}
+.pill.harness.cron {
+  border-color: var(--guia);
+  color: var(--guia);
+  background: var(--guia-tenue);
+}
+.pill.sinloop {
+  border-color: var(--dormido);
+  color: var(--dormido);
+}
+
+.cargando {
+  padding: 12px 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.error {
+  background: var(--error-tenue);
+  color: var(--error);
+  border-radius: var(--radio-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+
+.vacio {
+  background: var(--panel-2);
+  border: 1px dashed var(--linea-fuerte);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+.vacio p {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin: 0 auto;
+  max-width: 60ch;
+  line-height: 1.55;
+}
+.vacio code {
+  font-family: var(--mono);
+  background: var(--panel);
+  border: 1px solid var(--linea);
+  border-radius: 3px;
+  padding: 0 4px;
+}

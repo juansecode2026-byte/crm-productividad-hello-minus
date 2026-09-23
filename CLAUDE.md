@@ -185,6 +185,29 @@ Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.css`.
   usuario; RLS decide qué ve.
 - **Escrituras con lógica:** pasan por `backend/api/` (`VITE_API_URL`), con
   `Authorization: Bearer <access_token>`.
+- **`Ingeniería Agéntica` (`/agentes` y `/agentes/:id`)**, agregada el 2026-09-23:
+  vitrina de los agentes que llaman a Claude en este CRM, mostrados por su
+  **forma** — cuántos pasos tiene su grafo, si tiene loop, qué harness lo
+  invoca — no por texto. Los datos viven en `frontend/dashboard/src/lib/agentes.ts`
+  como constante (mismo criterio que `etapas.ts`: es un hecho del código, no algo
+  que cambie por proyecto). Un solo componente, `components/GrafoAgente.tsx`,
+  dibuja el grafo en dos tamaños (miniatura en la tarjeta, grande en el
+  detalle) a partir de esa lista de pasos — agregar un agente nuevo es agregar
+  una entrada en `agentes.ts`, nunca dibujar SVG a mano.
+
+  **`tieneLoop` es un campo, no una regla fija.** Hoy los tres agentes (Clasificador,
+  Sugeridor de etapa, Verificador de checklist) valen `false` — ninguno vuelve sobre
+  su propia salida. `GrafoAgente` lo usa para decidir la lectura de la última flecha:
+  si es `true`, la dibuja sólida y real; si es `false` y el agente tiene más de un
+  paso, dibuja la misma flecha en gris punteado, rotulada "no ocurre" — enseña qué es
+  un loop sin fingir que el agente lo tiene.
+
+  La sección "Agentes de otros proyectos" hace una consulta real contra
+  `trazas_agente` (`services/trazasAgenteService.ts`), no un cero fijo: hoy da 0
+  porque ningún repo instaló `hello-minus-telemetry` todavía (verificado
+  buscando la referencia en los 6 repos candidatos), pero el día que alguien lo
+  instale este número cambia solo, sin tocar código.
+
 - **`Proyecto.tsx` (`/proyectos/:id`)** es el detalle de un proyecto —
   estructura "Consola de Proyecto" (una de 3 propuestas comparadas el
   2026-09-18, ver el historial de la conversación): rail de las 9 etapas

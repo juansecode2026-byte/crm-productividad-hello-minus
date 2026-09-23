@@ -1,0 +1,49 @@
+.svgMini {
+  width: 100%;
+  height: 60px;
+  display: block;
+  color: var(--ink-2);
+}
+.svgDetalle {
+  width: 100%;
+  height: auto;
+  color: var(--ink-2);
+}
+.svgDetalle text,
+.svgMini text {
+  fill: currentColor;
+  font-family: var(--mono);
+}
+.titulo {
+  font-family: var(--sans);
+  font-weight: 600;
+}
+
+/* Un color por rol, no por agente — el mismo rol se lee igual en cualquier
+   grafo: violeta es "hay un LLM decidiendo acá", cian es "esto es
+   determinístico", verde es "esto ya es un hecho guardado". */
+.llm rect {
+  fill: none;
+  stroke: var(--guia);
+}
+.llm .titulo {
+  fill: var(--guia);
+}
+.script rect {
+  fill: none;
+  stroke: var(--acento);
+}
+.script .titulo {
+  fill: var(--acento);
+}
+.escritura rect {
+  fill: none;
+  stroke: var(--ok);
+}
+.escritura .titulo {
+  fill: var(--ok);
+}
+
+.fantasma {
+  opacity: 0.45;
+}

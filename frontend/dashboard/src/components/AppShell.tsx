@@ -18,6 +18,7 @@ function iniciales(nombre: string): string {
 
 // Todavía sin construir: quedan visibles porque anticipan la navegación real
 // del CRM, pero marcadas "pronto" en vez de simular que funcionan.
+// "Ingeniería Agéntica" salió de esta lista el 2026-09-23: ya es una ruta real.
 const seccionesPendientes = ['Equipo', 'Actividad', 'Indicadores', 'Ajustes'];
 
 type EstadoPersona = { nombre: string; rol: string } | 'cargando' | 'error';
@@ -27,6 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { tema, alternar } = useThemeStore();
   const ubicacion = useLocation();
   const enProyectos = ubicacion.pathname === '/' || ubicacion.pathname.startsWith('/proyectos');
+  const enAgentes = ubicacion.pathname.startsWith('/agentes');
 
   useEffect(() => {
     obtenerPersonaActual()
@@ -65,6 +67,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-current={enProyectos ? 'page' : undefined}
           >
             Proyectos
+          </Link>
+          <Link
+            to="/agentes"
+            className={`${estilos.navItem} ${enAgentes ? estilos.navItemActivo : ''}`}
+            aria-current={enAgentes ? 'page' : undefined}
+          >
+            Ingeniería Agéntica
           </Link>
           {seccionesPendientes.map((seccion) => (
             <span key={seccion} className={`${estilos.navItem} ${estilos.navItemPronto}`}>

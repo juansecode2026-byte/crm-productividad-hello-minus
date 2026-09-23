@@ -14,6 +14,7 @@ import {
   crearItemChecklist,
   escanearChecklist as escanearChecklistService,
   listarChecklist,
+  listarExplicaciones,
   marcarItemChecklist,
 } from '../services/checklistService';
 import { borrarHito, cambiarEstadoHito, crearHito, listarHitos } from '../services/hitosService';
@@ -21,6 +22,28 @@ import { listarPersonasActivas } from '../services/personasService';
 import { listarHistorialEtapas, obtenerProyecto } from '../services/proyectosService';
 import { crearTarea, listarTareas, type TareaConEvidencia } from '../services/tareasService';
 import estilos from './Proyecto.module.css';
+
+// Los cuatro estados de un ítem, de menos a más certeza. El símbolo no es
+// decoración: es lo que distingue un estado de otro para quien no ve el color
+// —el rojo contra el verde es justo el par que no distingue un daltónico— y lo
+// único que sobrevive si la pantalla se imprime en blanco y negro.
+type EstadoItem = 'sin_verificar' | 'sin_empezar' | 'en_proceso' | 'hecho' | 'confirmado';
+
+const GLIFO: Record<EstadoItem, string> = {
+  sin_verificar: '',
+  sin_empezar: '○',
+  en_proceso: '◐',
+  hecho: '✓',
+  confirmado: '✓',
+};
+
+const ROTULO: Record<EstadoItem, string> = {
+  sin_verificar: 'Sin verificar',
+  sin_empezar: 'Falta por construir',
+  en_proceso: 'En proceso',
+  hecho: 'Confirmar',
+  confirmado: 'Confirmado',
+};
 
 type EstadoEtapa = 'hecha' | 'actual' | 'saltada' | 'futura';
 
@@ -38,6 +61,7 @@ export function Proyecto() {
   const [proyecto, setProyecto] = useState<TipoProyecto | null | undefined>(undefined);
   const [historial, setHistorial] = useState<HistorialEtapa[]>([]);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [explicaciones, setExplicaciones] = useState<Map<string, string>>(new Map());
   const [hitos, setHitos] = useState<Hito[]>([]);
   const [tareas, setTareas] = useState<TareaConEvidencia[]>([]);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
@@ -47,10 +71,11 @@ export function Proyecto() {
   async function cargarTodo() {
     setError(null);
     try {
-      const [proy, hist, check, hit, tar, bloq, pers] = await Promise.all([
+      const [proy, hist, check, expl, hit, tar, bloq, pers] = await Promise.all([
         obtenerProyecto(proyectoId),
         listarHistorialEtapas(proyectoId),
         listarChecklist(proyectoId),
+        listarExplicaciones(),
         listarHitos(proyectoId),
         listarTareas(proyectoId),
         listarBloqueos(proyectoId),
@@ -59,6 +84,7 @@ export function Proyecto() {
       setProyecto(proy);
       setHistorial(hist);
       setChecklist(check);
+      setExplicaciones(expl);
       setHitos(hit);
       setTareas(tar);
       setBloqueos(bloq);
@@ -94,8 +120,8 @@ export function Proyecto() {
   const [resumenEscaneo, setResumenEscaneo] = useState<string | null>(null);
 
   // El agente propone; `completado` lo sigue moviendo solo una persona. Por eso
-  // después de escanear se recarga todo: lo que cambió son `detectado_en` y
-  // `evidencia`, no lo que alguien ya había confirmado.
+  // después de escanear se recarga todo: lo que cambió son `estado_agente`,
+  // `verificado_en` y `evidencia`, no lo que alguien ya había confirmado.
   async function escanear() {
     setErrorEscaneo(null);
     setResumenEscaneo(null);
@@ -104,7 +130,8 @@ export function Proyecto() {
       const resultado = await escanearChecklistService(proyectoId);
       await cargarTodo();
       const partes = [
-        `${resultado.detectados} de ${resultado.revisados} ítems detectados como hechos`,
+        `${resultado.hechos} de ${resultado.revisados} ítems dados por hechos`,
+        resultado.enProceso > 0 ? `${resultado.enProceso} en proceso` : null,
         resultado.sembrados > 0 ? `${resultado.sembrados} sembrados de la plantilla` : null,
         resultado.leyoClaudeMd ? 'leyó el CLAUDE.md del repo' : 'el repo no tiene CLAUDE.md',
       ].filter(Boolean);
@@ -295,7 +322,7 @@ export function Proyecto() {
   const bloqueosAbiertos = bloqueos.filter((b) => !b.resuelto_en).length;
 
   const totalConfirmados = checklist.filter((i) => i.completado).length;
-  const totalDetectados = checklist.filter((i) => !i.completado && i.detectado_en !== null).length;
+  const totalDetectados = checklist.filter((i) => !i.completado && i.estado_agente === 'hecho').length;
   const porcentajeChecklist =
     checklist.length === 0 ? 0 : Math.round((totalConfirmados / checklist.length) * 100);
 
@@ -307,7 +334,7 @@ export function Proyecto() {
       etapa,
       items,
       confirmados: items.filter((i) => i.completado).length,
-      detectados: items.filter((i) => !i.completado && i.detectado_en !== null).length,
+      detectados: items.filter((i) => !i.completado && i.estado_agente === 'hecho').length,
     };
   }).filter((grupo) => grupo.items.length > 0);
 
@@ -445,12 +472,13 @@ export function Proyecto() {
                 </p>
               )}
 
-              {porEtapa.map(({ etapa, items, confirmados, detectados }) => (
+              {porEtapa.map(({ etapa, items, confirmados }) => (
                 <details
                   key={etapa.numero}
-                  // Abiertas por defecto solo las que piden algo: la etapa
-                  // actual, o cualquiera con ítems detectados sin confirmar.
-                  open={etapa.numero === proyecto.etapa_actual || detectados > 0}
+                  // Siempre arrancan cerradas: las 9 a la vez desplegadas se leían
+                  // desorganizadas. Lo que necesita atención ya lo dice el resumen
+                  // de arriba ("N esperando tu confirmación"); acá cada quien abre
+                  // la etapa que le interesa.
                   className={estilos.grupoEtapa}
                 >
                   <summary className={estilos.grupoCab}>
@@ -473,14 +501,13 @@ export function Proyecto() {
 
                   <ul className={estilos.lista}>
                     {items.map((item) => {
-                      const detectado = !item.completado && item.detectado_en !== null;
+                      const explicacion = explicaciones.get(`${item.etapa}|${item.texto}`);
+                      // Una escala de certeza, no una bandera: lo único que cuenta
+                      // como terminado es `completado`, que solo mueve una persona.
+                      // Los otros tres los propone el agente y ninguno aprueba solo.
+                      const estado = item.completado ? 'confirmado' : (item.estado_agente ?? 'sin_verificar');
                       return (
-                        <li
-                          key={item.id}
-                          className={`${estilos.item} ${item.completado ? estilos.hecho : ''} ${
-                            detectado ? estilos.detectado : ''
-                          }`}
-                        >
+                        <li key={item.id} className={`${estilos.item} ${estilos[estado]}`}>
                           <button
                             type="button"
                             className={estilos.caja}
@@ -488,24 +515,33 @@ export function Proyecto() {
                             aria-pressed={item.completado}
                             aria-label={item.completado ? 'Marcar como pendiente' : 'Marcar como completado'}
                           >
-                            {item.completado || detectado ? '✓' : ''}
+                            {GLIFO[estado]}
                           </button>
                           <div className={estilos.cuerpoItem}>
                             <div className={estilos.textoItem}>{item.texto}</div>
+                            {/* Va antes de la evidencia a propósito: quien no programa
+                                necesita entender el ítem para poder confirmarlo, y la
+                                evidencia del agente está escrita para quien sí. */}
+                            {explicacion && (
+                              <div className={estilos.explicacionSimple}>
+                                <span className={estilos.rotuloSimple}>En palabras simples</span>
+                                {explicacion}
+                              </div>
+                            )}
                             {item.evidencia && <div className={estilos.evidencia}>{item.evidencia}</div>}
-                            <div
-                              className={
-                                item.completado ? estilos.firma : detectado ? estilos.firmaAgente : estilos.sinFirma
-                              }
-                            >
-                              {item.completado
-                                ? `confirmado por ${nombrePersona(item.completado_por)} · ${fechaCorta(item.completado_en)}`
-                                : detectado
-                                  ? 'detectado por el agente · sin confirmar'
-                                  : 'sin marcar'}
-                            </div>
+                            {/* Solo firma lo confirmado: en los otros tres, la etiqueta
+                                de la derecha ya dice el estado y repetirlo acá es ruido. */}
+                            {item.completado && (
+                              <div className={estilos.firma}>
+                                confirmado por {nombrePersona(item.completado_por)} ·{' '}
+                                {fechaCorta(item.completado_en)}
+                              </div>
+                            )}
                           </div>
-                          {detectado && (
+                          {/* De los cuatro estados, "hecho" es el único que pide algo —
+                              por eso es el único con forma de botón. Los demás llevan
+                              una etiqueta que informa y no se toca. */}
+                          {estado === 'hecho' ? (
                             <button
                               type="button"
                               className={estilos.accionConfirmar}
@@ -513,6 +549,13 @@ export function Proyecto() {
                             >
                               Confirmar
                             </button>
+                          ) : (
+                            estado !== 'confirmado' && (
+                              <span className={`${estilos.marca} ${estilos[estado]}`}>
+                                <span aria-hidden="true">{GLIFO[estado]}</span>
+                                {ROTULO[estado]}
+                              </span>
+                            )
                           )}
                           <button
                             type="button"

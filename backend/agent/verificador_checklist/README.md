@@ -4,11 +4,29 @@ Tercer agente con LLM. Lo dispara el botón "Generar con agente IA" de la
 pantalla de detalle de un proyecto: lee el repositorio y decide, ítem por ítem,
 qué del checklist ya está hecho y qué falta — con su evidencia.
 
+## Los tres veredictos
+
+Desde la migración 013 el veredicto no es un sí/no. Son tres valores, de menos a
+más certeza, y la diferencia importa: con el modelo binario, un repo con tests
+para dos de diez módulos se guardaba igual que uno sin una sola línea escrita.
+
+| Estado | Cuándo | En pantalla |
+|---|---|---|
+| `sin_empezar` | Buscó y no hay ninguna señal | Rojo, "falta por construir" |
+| `en_proceso` | Hay trabajo real pero incompleto | Cian, "en proceso" |
+| `hecho` | Lo que se ve respalda que está terminado | Ámbar, con "Confirmar" |
+
+**`en_proceso` no es el cajón de lo dudoso.** El prompt solo lo admite cuando el
+agente puede nombrar **las dos mitades**: qué hay y qué falta. Si no puede, baja
+un escalón — entre `hecho` y `en_proceso` elige `en_proceso`; entre
+`en_proceso` y `sin_empezar`, elige `sin_empezar`. Siempre hacia abajo, que es
+la dirección barata.
+
 ## La regla que gobierna todo esto
 
-**El agente nunca escribe `completado`.** Solo llena `detectado_en` y
-`evidencia` (migración 011). `completado` lo mueve una persona apretando
-"Confirmar" en cada ítem.
+**El agente nunca escribe `completado`.** Solo llena `estado_agente`,
+`verificado_en` y `evidencia`. `completado` lo mueve una persona apretando
+"Confirmar" en cada ítem, y solo aparece ese botón en los `hecho`.
 
 No es formalidad. El agente infiere **desde afuera**: ve que existe
 `trigger_router_sobre_messages`, no que procese un mensaje real. Si eso se
@@ -69,9 +87,26 @@ veces, pero **no hay ni una carpeta de tests**.
   es la dirección barata: un ítem de menos espera un clic; uno de más ensucia
   el porcentaje.
 
+### Los tres estados, probados contra `Monkeyotbz/crm-ventas` (2026-09-22)
+
+Nueve ítems, con tres casos donde se conocía la verdad de campo. Los tres
+salieron bien, y el reparto fue 3 `hecho` · 4 `en_proceso` · 2 `sin_empezar`:
+
+- **`sin_empezar`** — "Tests del flujo principal": *"no aparece ninguna carpeta
+  de tests ni configuración de test runner en el árbol"*. La trampa de siempre
+  (el `CLAUDE.md` habla de pruebas manuales) no lo movió.
+- **`en_proceso`** — "Sin errores críticos conocidos": citó las dos mitades sin
+  que se le insistiera — *"0 advertencias del linter de seguridad y todas las
+  tablas con RLS, pero también lista brechas abiertas: el widget sin límite de
+  velocidad, el camino de plantilla de WhatsApp sin probar contra Meta"*.
+- **`en_proceso`** — "Corriendo en producción" fue el caso que justifica toda la
+  migración: con el veredicto binario esto caía en "no" a secas. Ahora dice que
+  el Supabase real existe con datos reales **pero** `getcandycrm.com` todavía no
+  está desplegado.
+
 **Sin probar todavía:** la ruta HTTP completa (`POST
-/proyectos/:id/checklist/escanear`) con una sesión real, y el escaneo contra un
-repo ajeno que no sea este.
+/proyectos/:id/checklist/escanear`) con una sesión real contra la migración 013
+aplicada.
 
 ## Correr a mano
 

@@ -28,7 +28,9 @@ anterior ya corrió.
 | 11 | `migrations/009_registro_tiempo_inferido.sql` | `registro_tiempo` pasa a ser de solo-sistema: se retiran las políticas de escritura de personas y se agrega el constraint único que necesita el derivador para hacer upsert. |
 | 12 | `migrations/010_tarea_evidencia_unica.sql` | Constraint único para que el Detector de rastro no duplique evidencia al repetir corridas. |
 | 13 | `migrations/011_checklist_plantilla.sql` | `checklist_plantilla` (ítems base por etapa, editables) + `detectado_en`/`evidencia` en `checklist_items` + constraint único para sembrar sin duplicar. Aplicada 2026-09-22. |
-| 14+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 14 | `migrations/012_explicacion_simple.sql` | `explicacion_simple` en `checklist_plantilla`: qué significa cada ítem para alguien que no programa. Aplicada 2026-09-22. |
+| 15 | `migrations/013_estado_verificacion.sql` | El veredicto del agente pasa de binario a tres valores (`estado_agente`, `verificado_en`); reemplaza `detectado_en`. |
+| 16+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base
@@ -95,15 +97,36 @@ Code. Reuniones, llamadas con cliente o trabajo sin el agente no entran —  es
 la aproximación elegida a cambio de no depender de que alguien registre horas
 a mano todos los días.
 
-## El tercer estado de `checklist_items`
+## La escala de certeza de `checklist_items`
 
-Decidido el 2026-09-22 (migración 011). `completado` significa **una persona lo
-marcó**, y nada más. El Verificador de checklist (agente) nunca lo toca:
-escribe `detectado_en` y `evidencia`, que juntos significan "creo que esto ya
-está hecho, confirmalo". La interfaz los muestra en ámbar, con un botón
-"Confirmar" por ítem — no hay "confirmar todos", se descartó a propósito: si
-dos detecciones de tres son buenas, aceptar el lote entero obligaría a tragarse
-la mala.
+Decidido el 2026-09-22 (migraciones 011 y 013). `completado` significa **una
+persona lo marcó**, y nada más — es el único estado que cuenta para el
+porcentaje del proyecto. El Verificador de checklist (agente) nunca lo toca:
+escribe `estado_agente` y `evidencia`.
+
+`estado_agente` tiene tres valores, de menos a más certeza:
+
+| Valor | Significa | En pantalla |
+|---|---|---|
+| `sin_empezar` | El agente buscó y no hay ninguna señal | Rojo, "falta por construir" |
+| `en_proceso` | Hay trabajo real pero incompleto, y puede decir qué falta | Cian, "en proceso" |
+| `hecho` | Lo que se ve respalda que está terminado | Ámbar, con botón "Confirmar" |
+| `NULL` | El agente **nunca miró** este ítem | Gris, "sin verificar" |
+
+**`NULL` no es un cuarto veredicto, es la ausencia de veredicto**, y esa
+distinción es la razón de ser de `verificado_en`: antes, un ítem sin detectar y
+un ítem nunca escaneado se guardaban idénticos, así que la pantalla no podía
+decir "todavía nadie miró esto".
+
+**Por qué hizo falta `en_proceso`** (la migración 013): con el veredicto
+binario, un proyecto con tests para dos de diez módulos y un proyecto donde
+nadie escribió una sola línea se guardaban igual. La mayoría de los ítems de un
+proyecto vivo caen ahí, así que aplanarlos borraba justo la información más
+útil.
+
+Solo `hecho` ofrece el botón "Confirmar" — no hay "confirmar todos", se
+descartó a propósito: si dos detecciones de tres son buenas, aceptar el lote
+entero obligaría a tragarse la mala.
 
 Es la misma regla que ya rige `candidatos_alcance` — ningún agente aprueba
 solo — y acá importa por lo mismo: el agente infiere **desde afuera** del
@@ -114,6 +137,20 @@ revisara.
 `checklist_plantilla`, en cambio, **sí es tabla editable** y no constante en el
 código como las 9 etapas: son los ítems base que se copian a cada proyecto al
 escanear, y se decidió que el admin pueda ajustarlos sin desplegar.
+
+### `explicacion_simple`: para quien tiene que confirmar, no para quien programa
+
+Agregada el 2026-09-22 (migración 012). El texto del ítem y la evidencia del
+agente están escritos en jerga; quien mira la pantalla y decide si confirma
+puede no programar. Esta columna dice, en una o dos frases sin jerga, qué
+significa el ítem.
+
+**Vive en `checklist_plantilla` y no en `checklist_items` a propósito:** es la
+misma frase para todos los proyectos —a diferencia de `evidencia`, que sí es de
+cada repositorio—, así que corregir una redacción la arregla en todas partes
+sin necesidad de re-escanear nada. El frontend la busca por `(etapa, texto)`,
+que es la clave que las dos tablas comparten. Un ítem agregado a mano fuera de
+la plantilla simplemente no tiene explicación, y se muestra sin ella.
 
 ## Funciones auxiliares
 

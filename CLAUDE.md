@@ -413,10 +413,18 @@ Tercer agente con LLM. Lo dispara el botón "Generar con agente IA" de la
 pantalla de detalle: lee el repositorio y decide, ítem por ítem, qué del
 checklist ya está hecho, con evidencia. Ver su README para el detalle.
 
-- **Nunca escribe `completado`.** Solo `detectado_en` y `evidencia`
-  (migración 011). Confirmar es un clic humano, ítem por ítem — no hay
-  "confirmar todos", se descartó a propósito: si 2 de 3 detecciones son buenas
-  y una no, aceptar el lote entero obligaría a tragarse la mala.
+- **Nunca escribe `completado`.** Solo `estado_agente`, `verificado_en` y
+  `evidencia` (migraciones 011 y 013). Confirmar es un clic humano, ítem por
+  ítem — no hay "confirmar todos", se descartó a propósito: si 2 de 3
+  detecciones son buenas y una no, aceptar el lote entero obligaría a tragarse
+  la mala.
+- **El veredicto tiene tres valores, no dos** (`sin_empezar` / `en_proceso` /
+  `hecho`), más `NULL` para "nunca lo miró". `en_proceso` se agregó el
+  2026-09-22 porque era la respuesta más común en proyectos vivos y la que se
+  perdía: un repo con tests para 2 de 10 módulos se guardaba igual que uno sin
+  una línea escrita. El prompt exige que la evidencia de `en_proceso` traiga
+  **las dos mitades** — qué hay y qué falta — y que ante la duda entre dos
+  estados se elija siempre el menor.
 - Los ítems ya confirmados **no se le mandan**: no puede decir nada que cambie
   algo, y no gasta tokens.
 - **Lee el `CLAUDE.md` del repo ajeno si lo tiene** (`leerClaudeMd` en
@@ -434,6 +442,31 @@ iguales para todos los proyectos. **Es tabla y no constante en el código**, a
 diferencia de las 9 etapas, porque se decidió que se pueda ajustar sin
 desplegar. El escaneo siembra en `checklist_items` lo que falte (idempotente
 por `checklist_item_unico`) y después juzga.
+
+**La escala de certeza en pantalla** (dirección "Escala de certeza", elegida el
+2026-09-22 entre 2 propuestas): los estados son una escala de menos a más certeza
+y cada paso tiene su color, reusando el significado que ese color ya tenía en el
+producto — rojo `--error` "falta por construir", cian `--acento` "en proceso"
+(el mismo de los hitos en curso), ámbar `--alerta` con botón "Confirmar", verde
+`--ok` confirmado. Gris `--dormido` para "sin verificar", que no es un juicio del
+agente sino su ausencia.
+
+Dos reglas que no se negocian al tocar esto:
+
+- **Solo `hecho` tiene forma de botón.** Es el único estado que le pide algo a una
+  persona; los otros son etiquetas redondeadas sin cursor, para que no inviten a
+  tocarlas.
+- **El color nunca va solo.** Cada estado lleva su símbolo (`○ ◐ ✓`) porque rojo
+  contra verde es justo el par que no distingue un daltónico, y porque la
+  jerarquía tiene que sostenerse en escala de grises. Si alguien saca los
+  símbolos "porque el color ya se entiende", rompe las dos cosas a la vez.
+
+**`explicacion_simple`** (migración 012) es la misma plantilla, una columna más:
+qué significa cada ítem para alguien que no programa. La pantalla la muestra
+sobre la evidencia del agente, en violeta (`--guia` en `tokens.css`, un color
+que no es ninguno de los estados bien/ojo/mal). Queda en la plantilla y no se
+copia a `checklist_items` porque es igual para todos los proyectos — corregir
+una redacción la arregla en todas partes sin re-escanear.
 
 **El puente Node→Python se movió** a `services/agentePython.ts` cuando
 apareció el segundo agente de este tipo: `sugeridorEtapa.ts` y

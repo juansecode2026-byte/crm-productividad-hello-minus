@@ -31,9 +31,14 @@ export interface HistorialEtapa {
   sale_en: string | null;
 }
 
-// Tres estados, no dos: `completado` lo marca una persona; `detectado_en` lo
-// llena el agente al escanear y solo significa "creo que esto ya está hecho,
-// confirmalo". Ver db/migrations/011.
+// El veredicto del agente, de menos a más certeza. `null` no es un cuarto
+// valor: significa que el agente nunca miró este ítem, que no es lo mismo que
+// haberlo mirado y no encontrar nada. Ver db/migrations/013.
+export type EstadoAgente = 'sin_empezar' | 'en_proceso' | 'hecho';
+
+// Cuatro estados, no dos: `completado` lo marca una persona y es el único que
+// cuenta para el porcentaje; los otros tres los escribe el agente al escanear
+// y ninguno marca nada como terminado por sí solo.
 export interface ChecklistItem {
   id: string;
   proyecto_id: string;
@@ -42,13 +47,15 @@ export interface ChecklistItem {
   completado: boolean;
   completado_por: string | null;
   completado_en: string | null;
-  detectado_en: string | null;
+  estado_agente: EstadoAgente | null;
+  verificado_en: string | null;
   evidencia: string | null;
 }
 
 export interface ResultadoEscaneo {
   sembrados: number;
-  detectados: number;
+  hechos: number;
+  enProceso: number;
   revisados: number;
   leyoClaudeMd: boolean;
 }

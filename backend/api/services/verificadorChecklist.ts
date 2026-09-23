@@ -2,9 +2,9 @@
 // proyecto, lee el repositorio, y marca cuáles el agente cree ya hechos.
 //
 // La regla que gobierna todo este archivo: **el agente nunca escribe
-// `completado`.** Solo llena `detectado_en` y `evidencia`. `completado` lo
-// mueve una persona apretando "Confirmar" (PATCH .../checklist/:itemId), que
-// ya existía desde antes. Por eso los ítems ya confirmados ni siquiera se le
+// `completado`.** Solo llena `estado_agente`, `verificado_en` y `evidencia`.
+// `completado` lo mueve una persona apretando "Confirmar" (PATCH
+// .../checklist/:itemId), que ya existía desde antes. Por eso los ítems ya confirmados ni siquiera se le
 // mandan al agente: no hay nada que pueda decir que cambie algo.
 import type { ClienteSupabase } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp } from '../middleware/errores.js';
@@ -13,16 +13,21 @@ import { estadisticasRepo, estructuraRepo, leerClaudeMd } from './github.js';
 
 export interface ResultadoEscaneo {
   sembrados: number;
-  detectados: number;
+  hechos: number;
+  enProceso: number;
   revisados: number;
   leyoClaudeMd: boolean;
 }
 
+type EstadoAgente = 'sin_empezar' | 'en_proceso' | 'hecho';
+
 interface VeredictoAgente {
   id: string;
-  detectado: boolean;
+  estado: EstadoAgente;
   evidencia: string;
 }
+
+const ESTADOS_VALIDOS: readonly EstadoAgente[] = ['sin_empezar', 'en_proceso', 'hecho'];
 
 export async function escanearChecklist(
   supabase: ClienteSupabase,
@@ -80,7 +85,7 @@ export async function escanearChecklist(
   if (errorItems) throw desdeSupabase(errorItems);
 
   if (items.length === 0) {
-    return { sembrados, detectados: 0, revisados: 0, leyoClaudeMd: false };
+    return { sembrados, hechos: 0, enProceso: 0, revisados: 0, leyoClaudeMd: false };
   }
 
   // 4. Lo que se ve del repositorio. El CLAUDE.md es opcional: la mayoría de
@@ -119,30 +124,35 @@ export async function escanearChecklist(
 
   const veredictos = json.veredictos ?? [];
 
-  // 5. Escribir solo lo detectado. Un veredicto negativo limpia una detección
-  //    anterior: si el agente antes creyó ver algo y ahora no, el ámbar se
-  //    va — lo contrario dejaría propuestas viejas colgadas para siempre.
+  // 5. Escribir el veredicto. Se escribe siempre, en los tres estados: un
+  //    escaneo nuevo pisa al anterior, así una detección vieja que ya no se
+  //    sostiene no queda colgada para siempre.
   const idsValidos = new Set(items.map((item) => item.id));
   const ahora = new Date().toISOString();
-  let detectados = 0;
+  let hechos = 0;
+  let enProceso = 0;
 
   for (const veredicto of veredictos) {
     if (!idsValidos.has(veredicto.id)) continue;
+    // Un estado que no existe se descarta en vez de escribirse: mejor un ítem
+    // sin veredicto que una fila con un valor que el enum no acepta.
+    if (!ESTADOS_VALIDOS.includes(veredicto.estado)) continue;
 
     const { error } = await supabase
       .from('checklist_items')
-      .update(
-        veredicto.detectado
-          ? { detectado_en: ahora, evidencia: veredicto.evidencia }
-          : { detectado_en: null, evidencia: veredicto.evidencia },
-      )
+      .update({
+        estado_agente: veredicto.estado,
+        verificado_en: ahora,
+        evidencia: veredicto.evidencia,
+      })
       .eq('id', veredicto.id)
       .eq('proyecto_id', proyectoId)
       .eq('completado', false); // Cinturón: nunca pisar algo ya confirmado.
     if (error) throw desdeSupabase(error);
 
-    if (veredicto.detectado) detectados++;
+    if (veredicto.estado === 'hecho') hechos++;
+    else if (veredicto.estado === 'en_proceso') enProceso++;
   }
 
-  return { sembrados, detectados, revisados: veredictos.length, leyoClaudeMd: claudeMd !== null };
+  return { sembrados, hechos, enProceso, revisados: veredictos.length, leyoClaudeMd: claudeMd !== null };
 }

@@ -24,6 +24,10 @@
   --alerta-tenue: #2e2413;
   --error: #e5675c;
   --error-tenue: #341513;
+  /* Violeta: no es un estado (bien/ojo/mal) sino una voz distinta —
+     la explicacion en palabras simples. Por eso no reusa ningun otro token. */
+  --guia: #a996e0;
+  --guia-tenue: #221c38;
 
   --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
@@ -57,6 +61,8 @@
     --alerta-tenue: #fbf1dc;
     --error: #b3261e;
     --error-tenue: #fdeceb;
+    --guia: #5d4a9e;
+    --guia-tenue: #ece8f7;
   }
 }
 
@@ -79,6 +85,8 @@
   --alerta-tenue: #fbf1dc;
   --error: #b3261e;
   --error-tenue: #fdeceb;
+  --guia: #5d4a9e;
+  --guia-tenue: #ece8f7;
 }
 
 * {

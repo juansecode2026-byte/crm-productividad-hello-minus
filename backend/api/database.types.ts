@@ -172,34 +172,43 @@ export type Database = {
           completado: boolean
           completado_en: string | null
           completado_por: string | null
-          detectado_en: string | null
+          estado_agente:
+            | Database["public"]["Enums"]["estado_verificacion"]
+            | null
           etapa: number
           evidencia: string | null
           id: string
           proyecto_id: string
           texto: string
+          verificado_en: string | null
         }
         Insert: {
           completado?: boolean
           completado_en?: string | null
           completado_por?: string | null
-          detectado_en?: string | null
+          estado_agente?:
+            | Database["public"]["Enums"]["estado_verificacion"]
+            | null
           etapa: number
           evidencia?: string | null
           id?: string
           proyecto_id: string
           texto: string
+          verificado_en?: string | null
         }
         Update: {
           completado?: boolean
           completado_en?: string | null
           completado_por?: string | null
-          detectado_en?: string | null
+          estado_agente?:
+            | Database["public"]["Enums"]["estado_verificacion"]
+            | null
           etapa?: number
           evidencia?: string | null
           id?: string
           proyecto_id?: string
           texto?: string
+          verificado_en?: string | null
         }
         Relationships: [
           {
@@ -222,6 +231,7 @@ export type Database = {
         Row: {
           activo: boolean
           etapa: number
+          explicacion_simple: string | null
           id: string
           orden: number
           texto: string
@@ -229,6 +239,7 @@ export type Database = {
         Insert: {
           activo?: boolean
           etapa: number
+          explicacion_simple?: string | null
           id?: string
           orden?: number
           texto: string
@@ -236,6 +247,7 @@ export type Database = {
         Update: {
           activo?: boolean
           etapa?: number
+          explicacion_simple?: string | null
           id?: string
           orden?: number
           texto?: string
@@ -1587,6 +1599,7 @@ export type Database = {
       estado_hito: "pendiente" | "en_curso" | "cumplido" | "vencido"
       estado_madurez: "maduracion" | "activo"
       estado_proyecto: "activo" | "pausado" | "archivado"
+      estado_verificacion: "sin_empezar" | "en_proceso" | "hecho"
       fuente_evidencia: "commit" | "pull_request" | "sesion_claude_code"
       modalidad_proyecto: "individual" | "equipo"
       origen_punto: "manual" | "sugerido_por_agente" | "claude_md"
@@ -1729,6 +1742,7 @@ export const Constants = {
       estado_hito: ["pendiente", "en_curso", "cumplido", "vencido"],
       estado_madurez: ["maduracion", "activo"],
       estado_proyecto: ["activo", "pausado", "archivado"],
+      estado_verificacion: ["sin_empezar", "en_proceso", "hecho"],
       fuente_evidencia: ["commit", "pull_request", "sesion_claude_code"],
       modalidad_proyecto: ["individual", "equipo"],
       origen_punto: ["manual", "sugerido_por_agente", "claude_md"],

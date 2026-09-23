@@ -12,6 +12,31 @@ const CABECERAS: Record<string, string> = {
 };
 if (config.GITHUB_TOKEN) CABECERAS.Authorization = `Bearer ${config.GITHUB_TOKEN}`;
 
+// Autoverificación al arrancar: si GITHUB_TOKEN quedó mal guardado (espacio,
+// comilla, salto de línea de más), GitHub lo rechaza con 401 y el resto del
+// código lo trata igual que "no hay nada" — un falso negativo indistinguible
+// de un repo vacío. Esto lo saca a la luz apenas arranca, sin loguear el
+// token: solo su longitud y si `/rate_limit` lo acepta.
+if (config.GITHUB_TOKEN) {
+  const token = config.GITHUB_TOKEN;
+  console.log(
+    `[github] GITHUB_TOKEN cargado: ${token.length} caracteres, empieza "${token.slice(0, 4)}", termina "${token.slice(-4)}"` +
+      (token !== token.trim() ? ' — OJO: tiene espacios/saltos de línea al borde' : ''),
+  );
+  fetch('https://api.github.com/rate_limit', { headers: CABECERAS })
+    .then(async (respuesta) => {
+      if (!respuesta.ok) {
+        console.error(`[github] El token fue RECHAZADO por GitHub: HTTP ${respuesta.status}`);
+        return;
+      }
+      const datos = (await respuesta.json()) as { resources: { core: { limit: number; remaining: number } } };
+      console.log(
+        `[github] Token válido — límite ${datos.resources.core.limit}/hora, ${datos.resources.core.remaining} restantes`,
+      );
+    })
+    .catch((error) => console.error('[github] No se pudo verificar el token:', error));
+}
+
 const SIETE_DIAS_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface EstadisticasRepo {

@@ -132,8 +132,9 @@ def verificar_checklist(
             {
                 "role": "user",
                 "content": (
-                    f"Decidí, para cada uno de estos {len(items)} ítems, si lo que se ve del "
-                    "repositorio respalda que ya está hecho.\n\n"
+                    f"Decidí, para cada uno de estos {len(items)} ítems, en cuál de los tres "
+                    "estados está según lo que se ve del repositorio: sin_empezar, en_proceso "
+                    "o hecho.\n\n"
                     f"{_describir_repo(repo)}\n\n{_describir_items(items)}"
                 ),
             }

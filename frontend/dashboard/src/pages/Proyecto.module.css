@@ -406,10 +406,6 @@
   cursor: pointer;
   padding: 0;
 }
-.item.hecho .caja {
-  background: var(--ok-tenue);
-  border-color: var(--ok);
-}
 .caja:focus-visible {
   outline: 2px solid var(--acento);
   outline-offset: 1px;
@@ -422,35 +418,10 @@
   color: var(--ink);
   font-size: 12.5px;
 }
-.item.hecho .textoItem {
-  color: var(--ink-2);
-}
 .firma {
   font-family: var(--mono);
   font-size: 10.5px;
   color: var(--ok);
-  margin-top: 2px;
-}
-.sinFirma {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--ink-3);
-  margin-top: 2px;
-}
-
-/* Tercer estado: el agente lo propuso, nadie lo confirmó todavía. Ámbar y
-   con borde punteado a propósito — tiene que verse distinto de lo confirmado,
-   no parecido. */
-.item.detectado .caja {
-  background: var(--alerta-tenue);
-  border-color: var(--alerta);
-  border-style: dashed;
-  color: var(--alerta);
-}
-.firmaAgente {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--alerta);
   margin-top: 2px;
 }
 .evidencia {
@@ -461,8 +432,88 @@
   border-left: 2px solid var(--linea-fuerte);
   padding-left: 8px;
 }
-.item.detectado .evidencia {
+
+/* ---------------------------------------------------------------------------
+   Escala de certeza: cuatro estados, de menos a más (migración 013).
+
+   Un color por paso, y cada color ya significa eso en otra parte del producto:
+   el cian es el de los hitos "en curso", el ámbar el de "esperando tu
+   confirmación", el verde el de "cumplido". No se inventa vocabulario nuevo,
+   se completa el que ya existía.
+
+   El color nunca va solo: cada estado lleva además su símbolo (○ ◐ ✓) y su
+   borde, porque rojo-contra-verde es justo el par que no distingue un
+   daltónico, y porque la jerarquía tiene que sostenerse en escala de grises.
+   --------------------------------------------------------------------------- */
+
+/* 1 · el agente miró y no encontró nada */
+.item.sin_empezar .caja {
+  border-color: var(--error);
+  border-style: dashed;
+  color: var(--error);
+}
+.item.sin_empezar .evidencia {
+  border-left-color: var(--error);
+}
+
+/* 2 · hay trabajo real, incompleto */
+.item.en_proceso .caja {
+  border-color: var(--acento);
+  color: var(--acento);
+}
+.item.en_proceso .evidencia {
+  border-left-color: var(--acento);
+}
+
+/* 3 · el agente lo da por hecho y espera confirmación humana */
+.item.hecho .caja {
+  background: var(--alerta-tenue);
+  border-color: var(--alerta);
+  border-style: dashed;
+  color: var(--alerta);
+}
+.item.hecho .evidencia {
   border-left-color: var(--alerta);
+}
+
+/* 4 · lo confirmó una persona. El único que cuenta para el porcentaje. */
+.item.confirmado .caja {
+  background: var(--ok-tenue);
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.item.confirmado .textoItem {
+  color: var(--ink-2);
+}
+
+/* Nunca se escaneó: no es lo mismo que "miré y no hay nada", y no debería
+   leerse como un juicio del agente. Por eso queda en el gris más apagado. */
+.item.sin_verificar .caja {
+  border-style: dashed;
+}
+
+/* Explicación en palabras simples (migración 012). Violeta y con fondo propio
+   porque no es un estado del ítem —no compite con el verde/ámbar/gris de la
+   firma— sino otra voz: la misma frase para todos los proyectos, dirigida a
+   quien no programa y tiene que decidir si confirma. */
+.explicacionSimple {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  margin-top: 5px;
+  line-height: 1.5;
+  background: var(--guia-tenue);
+  border-left: 2px solid var(--guia);
+  border-radius: 0 var(--radio-sm) var(--radio-sm) 0;
+  padding: 7px 10px;
+}
+.rotuloSimple {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--guia);
+  margin-bottom: 2px;
 }
 .accionConfirmar {
   font: inherit;
@@ -476,6 +527,40 @@
   padding: 3px 8px;
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+/* La etiqueta de los estados que no piden nada. Ocupa la misma franja que el
+   botón "Confirmar" pero no es un botón —sin cursor, sin hover— justamente
+   para que no invite a tocarla: de los cuatro estados, solo uno tiene algo
+   que hacer, y ese sí es un botón de verdad. */
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  white-space: nowrap;
+}
+.marca.sin_empezar {
+  color: var(--error);
+  border: 1px solid var(--error);
+  background: var(--error-tenue);
+}
+.marca.en_proceso {
+  color: var(--acento);
+  border: 1px solid var(--acento);
+  background: var(--acento-tenue);
+}
+.marca.sin_verificar {
+  color: var(--dormido);
+  border: 1px solid var(--linea-fuerte);
+  background: transparent;
 }
 .accionConfirmar:hover {
   background: var(--alerta-tenue);

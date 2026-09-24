@@ -1,0 +1,42 @@
+name: Motor de indicadores
+
+# Fase 07 — corre los calculadores de scripts/calcular_indicadores.py y
+# escribe snapshots en indicador_snapshots.
+#
+# A diferencia de los otros tres workflows de este repo (que solo desfasan
+# el horario "para no pisarse"), acá el orden SÍ es una dependencia real:
+# CLAUDE.md lo dice dos veces como "orden obligatorio" — Sincronizador →
+# Clasificador de commits → Motor de indicadores. Varios calculadores leen
+# tipo_inferido/area_inferida (17_bus_factor lee persona_id, 24_documentacion
+# lee tipo_inferido directamente); correr antes de que el Clasificador
+# termine calcularía sobre commits sin etiquetar. Por eso `workflow_run`
+# en vez de un cron con un horario detrás: el motor arranca cuando el
+# Clasificador de verdad TERMINÓ, no cuando "ya debería haber terminado".
+"on":
+  workflow_run:
+    workflows: ["Clasificador de commits"]
+    types: [completed]
+  # Botón "Run workflow" para probarlo sin esperar al Clasificador.
+  workflow_dispatch:
+
+jobs:
+  calcular:
+    runs-on: ubuntu-latest
+    # Si el Clasificador falló, sus commits pueden haber quedado a medio
+    # etiquetar — mejor no calcular sobre eso. workflow_dispatch (sin
+    # workflow_run detrás) no tiene conclusion que chequear, así que pasa.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+        working-directory: scripts
+
+      - run: python calcular_indicadores.py
+        working-directory: scripts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

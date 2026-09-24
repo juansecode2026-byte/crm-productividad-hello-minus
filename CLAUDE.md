@@ -285,9 +285,16 @@ Corre los sábados a las 12:00 Colombia
 
 **Arrancada el 2026-09-23.** Script, no agente: el "LLM parcial" del diseño
 original era para inferir el área de un archivo, y eso ya lo resuelve
-`scripts/inferir_area.py` desde la Fase 06. Va después del Clasificador en la
-cadena nocturna. **Todavía no tiene disparador**: no hay workflow de GitHub
-Actions — agregarlo es tocar CI/CD, se decide aparte.
+`scripts/inferir_area.py` desde la Fase 06.
+
+**Disparador** (`.github/workflows/calcular-indicadores.yml`, 2026-09-24):
+a diferencia de los otros tres workflows de este repo, que solo desfasan el
+horario "para no pisarse", acá el orden con el Clasificador es una
+dependencia real — varios calculadores leen `tipo_inferido`/`persona_id` de
+commits recién clasificados. Por eso usa `workflow_run` (arranca cuando el
+Clasificador de commits **terminó de verdad**, con `conclusion == 'success'`)
+en vez de un cron con un horario detrás — un cron solo garantiza "ya debería
+haber terminado", no que terminó.
 
 **Catálogo sembrado** (migración 015): los 29 indicadores numerados de
 `docs/indicadores-individuales-hello-minus.md` + su aplicabilidad por
@@ -314,14 +321,42 @@ Reglas del motor, que valen para todo calculador que se agregue:
   `scope_type = 'persona'`: el constraint único es
   `(indicador_code, scope_type, scope_id, periodo)`, y una persona en dos
   proyectos chocaría consigo misma la misma semana.
+- **`scope_type = 'portafolio'`** (compara toda una modalidad contra la otra,
+  no un proyecto puntual) usa un UUID fijo (`PORTAFOLIO_SENTINEL`, todo ceros)
+  como `scope_id`, nunca `NULL`: dos filas con `NULL` nunca chocan en un
+  `UNIQUE` de Postgres, así que el upsert duplicaría una fila por corrida en
+  vez de pisarla.
 
-Calculadores construidos: `13_commits_proyecto` (el único con datos reales
-hoy — dio 3, verificado) y `29_avance_atribuido`. En el #29 `valor` queda en
-`NULL` a propósito: el doc aclara que NO es el avance del proyecto sino el de la
-porción de cada quien, y no existe un número único del proyecto que lo
-represente. Los dos se probaron contra la base real corriendo el mismo SQL del
-script; el #29 con tareas de prueba dentro de una transacción revertida (dio
-66.7% con 2 de 3, y la base quedó en cero después).
+**Los 13 indicadores con fuente ✓ ya están construidos y probados** (2026-09-24,
+con Sonnet — Opus solo arrancó el motor). El esquema los respalda sin esperar
+telemetría ni datos que no se capturan todavía:
+
+| Código | Ventana | Nota |
+|---|---|---|
+| `13_commits_proyecto` | acumulado | el primero — probó el motor contra datos reales (dio 3) |
+| `29_avance_atribuido` | acumulado | `valor` NULL: no hay un número de proyecto, solo porciones |
+| `01_throughput` | esta semana | tareas cerradas, no acumulado como los de arriba |
+| `04_tiempo_primer_avance` | acumulado | fecha REAL del primer commit/PR/sesión, no `tarea_evidencia.detectado_en` (que es cuándo corrió el Detector) |
+| `14_consistencia` | esta semana vs. 8 previas | ceros reales en semanas sin cierres, no se ignoran |
+| `17_bus_factor` | acumulado | con una sola persona da 100% solo, sin caso especial por modalidad |
+| `20_estabilidad_equipo` | acumulado | cuenta de gente que salió alguna vez |
+| `21_autosuficiencia` | acumulado | % de bloqueos resueltos por quien los abrió |
+| `24_documentacion` | acumulado | % de commits `tipo_inferido = 'documentacion'` |
+| `22_ritmo_sostenido` | 8 semanas | coeficiente de variación de commits/semana — varianza, no un ratio puntual |
+| `23_autocomparacion` | acumulado | solo individual: ritmo de este proyecto vs. otros individuales de la misma persona |
+| `26_bloqueo_individual_compartido` | acumulado, portafolio | `valor` NULL: "individual 2 días, equipo 0.5" no cabe en un número |
+| `28_intervencion_cruzada` | acumulado | commits de alguien que no es el encargado, en un proyecto individual |
+
+Todos probados contra la base real dentro de transacciones revertidas
+(sembrando datos de prueba cuando hacía falta, verificando el resultado
+esperado a mano, y confirmando después que la base quedó igual que antes).
+
+**Primera corrida real, 2026-09-24** (con confirmación explícita — escribir en
+`indicador_snapshots` es un recurso compartido): `13_commits_proyecto`,
+`17_bus_factor`, `20_estabilidad_equipo` (los dos proyectos) y
+`24_documentacion` quedaron con snapshots reales. Los otros 9 corrieron sin
+error pero no escribieron nada — no es un fallo, es "sin datos no hay
+snapshot": `tareas_semanales` y `bloqueos` siguen vacías en producción.
 
 **La columna "fuente" del catálogo es un hecho del esquema, no de los datos**
 (`FUENTE` en `lib/indicadores.ts`): ✓ el esquema lo respalda, ◐ espera
@@ -469,8 +504,10 @@ desviación del molde de `estructura.yaml`).
 - **Disparador:** `.github/workflows/clasificador-commits.yml`, cada 3 días a
   las 2 AM Colombia. GitHub Actions y no `pg_cron` porque el clasificador está
   en Python y las Edge Functions solo corren Deno. Necesita los secretos
-  `ANTHROPIC_API_KEY` y `DATABASE_URL` en GitHub — sin configurar todavía, ver
-  el README de la carpeta.
+  `ANTHROPIC_API_KEY` y `DATABASE_URL` en GitHub — **configurados desde el
+  2026-09-17** (verificado con `gh secret list` y con corridas reales
+  exitosas por horario el 19 y el 22 de septiembre). `calcular-indicadores.yml`
+  reusa el mismo `DATABASE_URL`, sin nada más que configurar.
 
 ### Sugeridor de etapa (`backend/agent/sugeridor_etapa/`)
 
@@ -617,5 +654,12 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
   detalladas arriba).
 - Sembrar catálogos: `roles_proyecto`, `canales_venta`.
   (`indicador_catalogo` e `indicador_aplicabilidad` ya se sembraron — migración 015.)
-- Disparador del Motor de indicadores (workflow de GitHub Actions después del
-  Clasificador) y los 27 calculadores que faltan. Ver la sección Fase 07.
+- El secreto `DATABASE_URL` que necesita `calcular-indicadores.yml` **ya está
+  configurado en GitHub** (desde el 2026-09-17, el mismo que usa
+  `clasificador-commits.yml` — verificado con `gh secret list` y corridas
+  reales). Falta solo que este workflow se pushee para que `workflow_run`
+  empiece a dispararlo. Los 13 calculadores ✓ ya están construidos y probados;
+  4 ya escribieron snapshots reales el 2026-09-24 (`13`, `17`, `20`, `24`) —
+  los otros 9 esperan que haya datos reales en `tareas_semanales`/`bloqueos`,
+  hoy vacías. Quedan los 16 que esperan telemetría (12 ◐) o un dato que no
+  se captura (4 ○). Ver la sección Fase 07.

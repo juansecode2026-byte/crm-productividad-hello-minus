@@ -55,7 +55,10 @@ probarlo sin esperar. GitHub Actions y no `pg_cron` porque el clasificador ya
 está en Python (STACK.md) y las Edge Functions de Supabase solo corren Deno;
 meterlo ahí hubiera significado reescribirlo en TypeScript.
 
-**Para activarlo, en GitHub → Settings → Secrets and variables → Actions:**
+**Los dos secretos ya están configurados** (GitHub → Settings → Secrets and
+variables → Actions, desde el 2026-09-17 — verificado con `gh secret list` y
+con corridas reales por horario el 19 y el 22 de septiembre, ambas
+`success`):
 
 | Secreto | Valor |
 |---|---|

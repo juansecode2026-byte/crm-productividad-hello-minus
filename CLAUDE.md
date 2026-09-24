@@ -118,11 +118,11 @@ miembros y personas.
 | `POST /repos/vincular` | Crea el proyecto (`crear_proyecto`) y la fila en `repositorios` en un solo paso |
 | `POST /repos/sugerir-etapa` | Lanza el Sugeridor de etapa (agente Python) y devuelve `{etapa, evidencia, dudas}`. Solo lo dispara el botón "Sugerir"; la persona confirma antes de guardar |
 | `POST /proyectos/:id/tareas` | Tarea semanal. `persona_id` por defecto quien la crea; asignarla a otra solo si es admin (RLS). Chequeo extra: la persona debe ser miembro activo del proyecto |
-| `PATCH` · `DELETE /proyectos/:id/tareas/:tareaId` | Solo quien la tiene asignada o admin (RLS) |
+| `PATCH` · `DELETE /proyectos/:id/tareas/:tareaId` | Solo quien la tiene asignada o admin (RLS). `PATCH` acepta `completado`; `completado_en` lo fija el servidor al marcar y lo limpia al desmarcar (migración 014) |
 | `POST /proyectos/:id/bloqueos` | Abre un bloqueo — siempre a nombre de quien lo crea, no hay "abrir a nombre de otro" |
 | `POST /proyectos/:id/bloqueos/:bloqueoId/resolver` | Cierra el bloqueo (`resuelto_en`, `resuelto_por` = quien resuelve). No se puede resolver dos veces |
 | `POST` · `PATCH` · `DELETE /proyectos/:id/checklist[/:itemId]` | Ítem de checklist por etapa. `completado_por`/`completado_en` los fija el servidor al marcar; desmarcar los limpia. Miembro, líder o admin (RLS) |
-| `POST /proyectos/:id/checklist/escanear` | Lanza el Verificador de checklist: siembra de `checklist_plantilla` lo que falte y marca `detectado_en`/`evidencia`. **Nunca toca `completado`** — eso lo confirma una persona, ítem por ítem |
+| `POST /proyectos/:id/checklist/escanear` | Lanza el Verificador de checklist: siembra de `checklist_plantilla` lo que falte y escribe `estado_agente`/`evidencia`/`evidencia_archivo`, más la fecha de la evidencia en lo que da por hecho. **Nunca toca `completado`** — eso lo confirma una persona, ítem por ítem |
 | `POST` · `PATCH` · `DELETE /proyectos/:id/hitos[/:hitoId]` | Hito, con `etapa` opcional. Marcar `estado = cumplido` sin `fecha_real` la fija en hoy; si el body la trae, se respeta (sirve para cargar historia vieja). Solo líder o admin (RLS) |
 
 **`repos_candidatos`** (tabla nueva, `db/migrations/005`) es la lista de vigilancia
@@ -208,6 +208,20 @@ Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.css`.
   buscando la referencia en los 6 repos candidatos), pero el día que alguien lo
   instale este número cambia solo, sin tocar código.
 
+- **`Indicadores` (`/indicadores`)**, agregada el 2026-09-23: el catálogo — la
+  **definición** de cada indicador, no su número. Agrupado por tipo
+  (Productividad, Efectividad...) con el Grupo A/B/C/Nuevo como etiqueta por
+  fila; ver la sección Fase 07 para qué significa cada columna. Los valores
+  calculados no viven acá: viven en cada proyecto.
+
+- **"Aporte por integrante"** en `Proyecto.tsx` (indicador #29): lee el último
+  snapshot, no calcula en vivo — marcar una tarea terminada no mueve el número
+  hasta que corre el motor, y la pantalla lo dice. **Todas las barras van en
+  el mismo color**, a propósito: el mockup aprobado usaba verde/ámbar según el
+  porcentaje, y eso leía "a uno le va bien y al otro mal", justo la comparación
+  entre personas que el doc de indicadores prohíbe. Cada porcentaje se mide
+  contra la porción de esa persona; nunca se muestran como partes de un total.
+
 - **`Proyecto.tsx` (`/proyectos/:id`)** es el detalle de un proyecto —
   estructura "Consola de Proyecto" (una de 3 propuestas comparadas el
   2026-09-18, ver el historial de la conversación): rail de las 9 etapas
@@ -266,6 +280,63 @@ Corre los sábados a las 12:00 Colombia
 - Probado de punta a punta contra la base real: sembré una tarea con 2 áreas
   declaradas y evidencia real solo en una — confirmó que encuentra las 3
   fuentes en el área correcta y no inventa nada en la otra.
+
+## Fase 07 — Motor de indicadores (`scripts/calcular_indicadores.py`)
+
+**Arrancada el 2026-09-23.** Script, no agente: el "LLM parcial" del diseño
+original era para inferir el área de un archivo, y eso ya lo resuelve
+`scripts/inferir_area.py` desde la Fase 06. Va después del Clasificador en la
+cadena nocturna. **Todavía no tiene disparador**: no hay workflow de GitHub
+Actions — agregarlo es tocar CI/CD, se decide aparte.
+
+**Catálogo sembrado** (migración 015): los 29 indicadores numerados de
+`docs/indicadores-individuales-hello-minus.md` + su aplicabilidad por
+modalidad. Quedan afuera los 9 que el doc marca "dependen 100% del cliente".
+El doc habla de un "catálogo general de 50" que **no existe en el repo** —
+29 + 9 = 38; no se sembraron filas para llegar a un número que no corresponde
+a nada escrito. Tres cosas quedaron vacías porque el doc no las decide: el
+`plazo` (inmediato/mediano/largo) de todos, la fila `equipo` de los 9 "nuevos
+para individual" (sin fila = no decidido, que no es lo mismo que
+`aplica = false`), e `indicador_madurez`.
+
+**El Grupo A/B/C/Nuevo no se guarda en ninguna columna** — se deriva de
+`indicador_aplicabilidad` (`grupoDe` en `frontend/dashboard/src/lib/indicadores.ts`).
+Guardarlo además sería el mismo dato en dos lugares.
+
+Reglas del motor, que valen para todo calculador que se agregue:
+
+- **Un snapshot por semana**, `periodo` = el lunes. Correr dos veces la misma
+  semana pisa (upsert contra `snapshot_unico`); las semanas pasadas no se tocan.
+- **Sin datos no hay snapshot.** No se escribe un cero: la ausencia de fila es
+  la respuesta honesta, un cero diría "se midió y dio cero".
+- **Indicadores de persona-dentro-de-un-proyecto van con `scope_type = 'proyecto'`**
+  y el desglose por persona en `detalle.por_persona`. No se puede usar
+  `scope_type = 'persona'`: el constraint único es
+  `(indicador_code, scope_type, scope_id, periodo)`, y una persona en dos
+  proyectos chocaría consigo misma la misma semana.
+
+Calculadores construidos: `13_commits_proyecto` (el único con datos reales
+hoy — dio 3, verificado) y `29_avance_atribuido`. En el #29 `valor` queda en
+`NULL` a propósito: el doc aclara que NO es el avance del proyecto sino el de la
+porción de cada quien, y no existe un número único del proyecto que lo
+represente. Los dos se probaron contra la base real corriendo el mismo SQL del
+script; el #29 con tareas de prueba dentro de una transacción revertida (dio
+66.7% con 2 de 3, y la base quedó en cero después).
+
+**La columna "fuente" del catálogo es un hecho del esquema, no de los datos**
+(`FUENTE` en `lib/indicadores.ts`): ✓ el esquema lo respalda, ◐ espera
+telemetría de Claude Code, ○ falta capturar un dato. Regla: se mide lo que el
+doc DEFINE, no un sustituto — si dice "% de tiempo", un proxy con commits sería
+otro indicador con el mismo nombre. Quedó 13 ✓ · 12 ◐ · 4 ○. Los 4 sin campo
+necesitan capturar algo que hoy no existe: estimación por tarea (03),
+capacidad por persona (06), catálogo de tipo de proyecto (12), tiempo en
+reuniones (19).
+
+**`tareas_semanales.completado`** (migración 014) existe para esto: #29 necesita
+"esto es tuyo" + "esto está terminado", y ninguna tabla juntaba las dos
+(`checklist_items` no tiene dueño, `hitos` ni siquiera tiene `persona_id`). Es
+una declaración de la persona, no una verificación — la evidencia real sigue en
+`tarea_evidencia`, y las dos señales juntas son lo que vale.
 
 ## Fase 04 — Registro de tiempo (`scripts/derivar_registro_tiempo.py`)
 
@@ -455,6 +526,20 @@ checklist ya está hecho, con evidencia. Ver su README para el detalle.
   declarando qué construyó, en vez de deducirlo de la forma de las carpetas—
   pero el prompt le pide desconfiar si contradice la estructura, y distinguir
   planes de hechos.
+- **Fecha de la evidencia** (migración 016, 2026-09-24): a lo que el agente da
+  por hecho se le muestra cuándo se hizo — con honestidad sobre de dónde sale,
+  porque "cuándo se hizo" no está guardado en ningún lado. `verificado_en` es
+  cuándo miró el agente y `completado_en` cuándo confirmó una persona; ninguna es
+  la del trabajo. Se usa, en este orden: (1) el último commit del archivo que el
+  agente citó, (2) una fecha escrita a mano en la frase citada, (3) el último
+  commit del `CLAUDE.md`, solo si el veredicto se apoyó en él. Sin ninguna, no
+  hay fecha. El origen se guarda aparte (`evidencia_fecha_origen`) y la
+  pantalla lo dice en el rótulo, con un ⓘ que lo explica al tocarlo.
+  **Lo único que pone el agente es `archivo_evidencia`**; elegir la fecha es
+  aritmética (`services/fechaEvidencia.ts`) y consultas a GitHub
+  (`ultimoCommitDeArchivo`). Cero tokens extra de Claude. La ruta del agente se
+  valida contra los archivos que se le mostraron — una inventada no llega a la
+  base ni dispara una consulta.
 - El tope de lectura de ese archivo son **40.000 caracteres**, subido desde
   12.000 el 2026-09-22 tras una prueba real: con el tope viejo, el `CLAUDE.md`
   de este repo (28 KB) llegaba al 43% y el agente respondía que faltaban
@@ -530,5 +615,7 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 - Rol comercial separado de admin: ¿hace falta?
 - Detalle de las fases 05 y 07-13 (solo tienen título; la 03 y la 04 ya están
   detalladas arriba).
-- Sembrar catálogos: `indicador_catalogo`, `indicador_aplicabilidad`,
-  `roles_proyecto`, `canales_venta`.
+- Sembrar catálogos: `roles_proyecto`, `canales_venta`.
+  (`indicador_catalogo` e `indicador_aplicabilidad` ya se sembraron — migración 015.)
+- Disparador del Motor de indicadores (workflow de GitHub Actions después del
+  Clasificador) y los 27 calculadores que faltan. Ver la sección Fase 07.

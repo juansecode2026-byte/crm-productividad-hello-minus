@@ -30,6 +30,11 @@ export function crearTarea(proyectoId: string, datos: DatosNuevaTarea): Promise<
   return peticionApi<TareaSemanal>('POST', `/proyectos/${proyectoId}/tareas`, datos);
 }
 
+// La fecha de cierre la fija el servidor, no se manda desde acá.
+export function marcarTarea(proyectoId: string, tareaId: string, completado: boolean): Promise<TareaSemanal> {
+  return peticionApi<TareaSemanal>('PATCH', `/proyectos/${proyectoId}/tareas/${tareaId}`, { completado });
+}
+
 export function borrarTarea(proyectoId: string, tareaId: string): Promise<void> {
   return peticionApi<void>('DELETE', `/proyectos/${proyectoId}/tareas/${tareaId}`);
 }

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import type { Database } from '../database.types.js';
 import { contexto } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp, errorSinFila, validar } from '../middleware/errores.js';
 
@@ -22,8 +23,12 @@ const esquemaCrear = z.strictObject(camposEditables).extend({
   persona_id: z.uuid().optional(),
 });
 
+// `completado` se acepta solo al editar, nunca al crear: una tarea nace
+// abierta. `completado_en` no se acepta del cliente — lo fija el servidor,
+// igual que en el checklist, para que la fecha de cierre sea la real y no la
+// que alguien escriba.
 const esquemaEditar = z
-  .strictObject(camposEditables)
+  .strictObject({ ...camposEditables, completado: z.boolean() })
   .partial()
   .refine((cambios) => Object.keys(cambios).length > 0, 'No hay campos para actualizar');
 
@@ -104,9 +109,16 @@ tareas.patch('/:tareaId', async (req, res) => {
     if (incoherencia) throw new ErrorHttp(422, incoherencia);
   }
 
+  const { completado, ...resto } = cambios;
+  const actualizacion: Database['public']['Tables']['tareas_semanales']['Update'] = { ...resto };
+  if (completado !== undefined) {
+    actualizacion.completado = completado;
+    actualizacion.completado_en = completado ? new Date().toISOString() : null;
+  }
+
   const { data, error } = await supabase
     .from('tareas_semanales')
-    .update(cambios)
+    .update(actualizacion)
     .eq('id', tareaId)
     .eq('proyecto_id', proyectoId)
     .select()

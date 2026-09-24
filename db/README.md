@@ -30,7 +30,10 @@ anterior ya corrió.
 | 13 | `migrations/011_checklist_plantilla.sql` | `checklist_plantilla` (ítems base por etapa, editables) + `detectado_en`/`evidencia` en `checklist_items` + constraint único para sembrar sin duplicar. Aplicada 2026-09-22. |
 | 14 | `migrations/012_explicacion_simple.sql` | `explicacion_simple` en `checklist_plantilla`: qué significa cada ítem para alguien que no programa. Aplicada 2026-09-22. |
 | 15 | `migrations/013_estado_verificacion.sql` | El veredicto del agente pasa de binario a tres valores (`estado_agente`, `verificado_en`); reemplaza `detectado_en`. |
-| 16+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 16 | `migrations/014_tareas_completadas.sql` | `completado` + `completado_en` en `tareas_semanales`, con constraint de coherencia. Le da fuente a los indicadores #01 y #29. Aplicada 2026-09-23. |
+| 17 | `migrations/015_sembrar_catalogo_indicadores.sql` | Siembra los 29 indicadores y su aplicabilidad por modalidad (Grupos A/B/C). Sin `plazo` y sin fila `equipo` para los 9 nuevos: el doc no los decide. Aplicada 2026-09-23. |
+| 18 | `migrations/016_fecha_evidencia.sql` | `evidencia_archivo`, `evidencia_fecha` y `evidencia_fecha_origen` en `checklist_items`: cuándo se hizo lo que el agente da por hecho, y qué tan confiable es esa fecha. Aplicada 2026-09-24. |
+| 19+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base
@@ -194,18 +197,21 @@ queda huérfana y sus indicadores individuales salen vacíos.
 
 ## Pendiente
 
-- **Que los dos integrantes se registren en Supabase Auth** con su email real
-  (`juansecode2026@gmail.com` y `monkeyotbz@gmail.com`) para que el trigger de
-  `001_vincular_auth_y_catalogos.sql` los enlace. Hasta entonces
-  `private.persona_actual()` devuelve `NULL` y RLS los deja afuera.
+- **Que Gabriel se registre en Supabase Auth** con su email real
+  (`monkeyotbz@gmail.com`) para que el trigger de
+  `001_vincular_auth_y_catalogos.sql` lo enlace. Juan ya está enlazado
+  (verificado el 2026-09-18). Hasta entonces, para Gabriel
+  `private.persona_actual()` devuelve `NULL` y RLS lo deja afuera.
 - Decidir si hace falta un **rol comercial** separado de admin.
-- Decidir el origen del **registro de tiempo**: captura manual (precisa, exige
-  disciplina) o estimación automática desde sesiones de Claude Code (cero
-  fricción, subestima).
-- Sembrar `indicador_catalogo` e `indicador_aplicabilidad` con los ~50
-  indicadores del catálogo y los Grupos A/B/C de
-  [indicadores-individuales](../docs/indicadores-individuales-hello-minus.md).
 - Sembrar `roles_proyecto` y `canales_venta`.
+
+Resueltos (se dejan anotados para no reabrirlos):
+
+- ~~Origen del registro de tiempo~~ — 100% inferido desde sesiones de Claude
+  Code, decidido el 2026-09-17 (migración 009).
+- ~~Sembrar `indicador_catalogo` e `indicador_aplicabilidad`~~ — hecho el
+  2026-09-23 (migración 015). Eran 29, no "~50": el catálogo general de 50 que
+  mencionaba el doc nunca existió en el repo.
 
 ## Notas de rendimiento
 

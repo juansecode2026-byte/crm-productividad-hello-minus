@@ -177,6 +177,11 @@ export type Database = {
             | null
           etapa: number
           evidencia: string | null
+          evidencia_archivo: string | null
+          evidencia_fecha: string | null
+          evidencia_fecha_origen:
+            | Database["public"]["Enums"]["origen_fecha_evidencia"]
+            | null
           id: string
           proyecto_id: string
           texto: string
@@ -191,6 +196,11 @@ export type Database = {
             | null
           etapa: number
           evidencia?: string | null
+          evidencia_archivo?: string | null
+          evidencia_fecha?: string | null
+          evidencia_fecha_origen?:
+            | Database["public"]["Enums"]["origen_fecha_evidencia"]
+            | null
           id?: string
           proyecto_id: string
           texto: string
@@ -205,6 +215,11 @@ export type Database = {
             | null
           etapa?: number
           evidencia?: string | null
+          evidencia_archivo?: string | null
+          evidencia_fecha?: string | null
+          evidencia_fecha_origen?:
+            | Database["public"]["Enums"]["origen_fecha_evidencia"]
+            | null
           id?: string
           proyecto_id?: string
           texto?: string
@@ -1320,6 +1335,8 @@ export type Database = {
       tareas_semanales: {
         Row: {
           areas: string[]
+          completado: boolean
+          completado_en: string | null
           creado_en: string
           creado_por: string | null
           id: string
@@ -1331,6 +1348,8 @@ export type Database = {
         }
         Insert: {
           areas?: string[]
+          completado?: boolean
+          completado_en?: string | null
           creado_en?: string
           creado_por?: string | null
           id?: string
@@ -1342,6 +1361,8 @@ export type Database = {
         }
         Update: {
           areas?: string[]
+          completado?: boolean
+          completado_en?: string | null
           creado_en?: string
           creado_por?: string | null
           id?: string
@@ -1602,6 +1623,7 @@ export type Database = {
       estado_verificacion: "sin_empezar" | "en_proceso" | "hecho"
       fuente_evidencia: "commit" | "pull_request" | "sesion_claude_code"
       modalidad_proyecto: "individual" | "equipo"
+      origen_fecha_evidencia: "commit_archivo" | "texto" | "commit_claude_md"
       origen_punto: "manual" | "sugerido_por_agente" | "claude_md"
       origen_tiempo: "manual" | "inferido"
       plazo_indicador: "inmediato" | "mediano" | "largo"
@@ -1745,6 +1767,7 @@ export const Constants = {
       estado_verificacion: ["sin_empezar", "en_proceso", "hecho"],
       fuente_evidencia: ["commit", "pull_request", "sesion_claude_code"],
       modalidad_proyecto: ["individual", "equipo"],
+      origen_fecha_evidencia: ["commit_archivo", "texto", "commit_claude_md"],
       origen_punto: ["manual", "sugerido_por_agente", "claude_md"],
       origen_tiempo: ["manual", "inferido"],
       plazo_indicador: ["inmediato", "mediano", "largo"],

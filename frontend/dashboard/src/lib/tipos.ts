@@ -50,7 +50,14 @@ export interface ChecklistItem {
   estado_agente: EstadoAgente | null;
   verificado_en: string | null;
   evidencia: string | null;
+  // Migración 016. La fecha es la mejor aproximación a cuándo se hizo lo que el
+  // ítem describe; el origen dice qué tan confiable es. Van juntas o no van.
+  evidencia_archivo: string | null;
+  evidencia_fecha: string | null;
+  evidencia_fecha_origen: OrigenFechaEvidencia | null;
 }
+
+export type OrigenFechaEvidencia = 'commit_archivo' | 'texto' | 'commit_claude_md';
 
 export interface ResultadoEscaneo {
   sembrados: number;
@@ -79,6 +86,9 @@ export interface TareaEvidencia {
   detectado_en: string;
 }
 
+// `completado` lo declara la persona asignada (migración 014). No es una
+// verificación: la evidencia real de haberla hecho vive aparte, en
+// tarea_evidencia. Las dos señales juntas son lo que vale.
 export interface TareaSemanal {
   id: string;
   proyecto_id: string;
@@ -87,6 +97,8 @@ export interface TareaSemanal {
   semana_fin: string;
   titulo: string;
   areas: string[];
+  completado: boolean;
+  completado_en: string | null;
 }
 
 export interface Bloqueo {

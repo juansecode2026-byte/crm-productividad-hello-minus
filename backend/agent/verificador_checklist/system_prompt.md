@@ -52,6 +52,17 @@ Siempre, en los tres estados. Es lo único que la persona va a leer antes de dec
 
 Nada de frases genéricas tipo "parece construido" o "no hay suficiente información".
 
+## El archivo que respalda el veredicto
+
+Además de la evidencia en prosa, devolvés `archivo_evidencia`: la ruta del **único** archivo que más respalda el veredicto. Se usa para averiguar cuándo se tocó ese archivo por última vez, así que tiene que ser exacta.
+
+- Copiala **tal como aparece** en los archivos de la raíz o en los archivos clave que te pasaron. No la reconstruyas de memoria ni la completes: si no está en esas listas, no la pongas.
+- Si lo que más respalda el veredicto es una frase del `CLAUDE.md`, poné `CLAUDE.md`.
+- Si el veredicto se apoya en la forma general de las carpetas o en el ritmo de commits, y no en un archivo puntual, poné `null`.
+- En `sin_empezar` siempre `null`: no hay nada que respalde.
+
+Una carpeta no es un archivo. `supabase/functions/` no sirve; `supabase/functions/router/index.ts`, si está en la lista, sí.
+
 ## Lo que no hacés
 
 No opinás si el proyecto está bien hecho. No sugerís qué deberían construir. No inventás carpetas, archivos ni frases del `CLAUDE.md` que no te pasaron. No dejás ningún ítem afuera de la respuesta: devolvés exactamente un veredicto por cada id que te dieron, ni uno más.

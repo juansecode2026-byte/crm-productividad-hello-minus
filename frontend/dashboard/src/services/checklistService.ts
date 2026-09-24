@@ -6,7 +6,7 @@ export async function listarChecklist(proyectoId: string): Promise<ChecklistItem
   const { data, error } = await supabase
     .from('checklist_items')
     .select(
-      'id, proyecto_id, etapa, texto, completado, completado_por, completado_en, estado_agente, verificado_en, evidencia',
+      'id, proyecto_id, etapa, texto, completado, completado_por, completado_en, estado_agente, verificado_en, evidencia, evidencia_archivo, evidencia_fecha, evidencia_fecha_origen',
     )
     .eq('proyecto_id', proyectoId)
     .order('etapa')

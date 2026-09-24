@@ -9,7 +9,8 @@
 import type { ClienteSupabase } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp } from '../middleware/errores.js';
 import { correrAgente } from './agentePython.js';
-import { estadisticasRepo, estructuraRepo, leerClaudeMd } from './github.js';
+import { resolverFechaEvidencia, type FechaEvidencia } from './fechaEvidencia.js';
+import { estadisticasRepo, estructuraRepo, leerClaudeMd, ultimoCommitDeArchivo } from './github.js';
 
 export interface ResultadoEscaneo {
   sembrados: number;
@@ -25,6 +26,7 @@ interface VeredictoAgente {
   id: string;
   estado: EstadoAgente;
   evidencia: string;
+  archivo_evidencia?: string | null;
 }
 
 const ESTADOS_VALIDOS: readonly EstadoAgente[] = ['sin_empezar', 'en_proceso', 'hecho'];
@@ -129,8 +131,35 @@ export async function escanearChecklist(
   //    sostiene no queda colgada para siempre.
   const idsValidos = new Set(items.map((item) => item.id));
   const ahora = new Date().toISOString();
+  const hoy = ahora.slice(0, 10);
   let hechos = 0;
   let enProceso = 0;
+
+  // La ruta que cita el agente solo se acepta si está entre los archivos que
+  // efectivamente se le mostraron. Una ruta inventada no llega a la base, y
+  // tampoco dispara una consulta a GitHub.
+  const rutasMostradas = new Set([...estructura.archivosRaiz, ...estructura.archivosClave]);
+  if (claudeMd !== null) rutasMostradas.add('CLAUDE.md');
+  const archivoValido = (v: VeredictoAgente): string | null =>
+    v.estado !== 'sin_empezar' && v.archivo_evidencia && rutasMostradas.has(v.archivo_evidencia)
+      ? v.archivo_evidencia
+      : null;
+
+  // 5a. La fecha de la evidencia, solo para lo que el agente da por hecho —
+  //     es lo único donde "¿cuándo se terminó?" tiene sentido. Las consultas a
+  //     GitHub van en paralelo y sin repetir: si tres ítems citan el mismo
+  //     archivo, se pregunta una sola vez. Cero tokens de Claude: es la API de
+  //     GitHub y aritmética (services/fechaEvidencia.ts).
+  const rutasAConsultar = new Set<string>();
+  for (const v of veredictos) {
+    const archivo = archivoValido(v);
+    if (v.estado === 'hecho' && archivo) rutasAConsultar.add(archivo);
+  }
+  const fechaPorRuta = new Map(
+    await Promise.all(
+      [...rutasAConsultar].map(async (ruta) => [ruta, await ultimoCommitDeArchivo(owner, repo, ruta)] as const),
+    ),
+  );
 
   for (const veredicto of veredictos) {
     if (!idsValidos.has(veredicto.id)) continue;
@@ -138,12 +167,27 @@ export async function escanearChecklist(
     // sin veredicto que una fila con un valor que el enum no acepta.
     if (!ESTADOS_VALIDOS.includes(veredicto.estado)) continue;
 
+    const archivo = archivoValido(veredicto);
+    const fecha: FechaEvidencia | null =
+      veredicto.estado === 'hecho'
+        ? resolverFechaEvidencia({
+            archivo,
+            evidencia: veredicto.evidencia,
+            fechaDelArchivo: archivo && archivo !== 'CLAUDE.md' ? (fechaPorRuta.get(archivo) ?? null) : null,
+            fechaClaudeMd: archivo === 'CLAUDE.md' ? (fechaPorRuta.get('CLAUDE.md') ?? null) : null,
+            hoy,
+          })
+        : null;
+
     const { error } = await supabase
       .from('checklist_items')
       .update({
         estado_agente: veredicto.estado,
         verificado_en: ahora,
         evidencia: veredicto.evidencia,
+        evidencia_archivo: archivo,
+        evidencia_fecha: fecha?.fecha ?? null,
+        evidencia_fecha_origen: fecha?.origen ?? null,
       })
       .eq('id', veredicto.id)
       .eq('proyecto_id', proyectoId)

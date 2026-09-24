@@ -43,6 +43,21 @@ class VeredictoItem(BaseModel):
             "que decir las dos mitades: qué hay y qué falta. Nunca genérico."
         )
     )
+    # Separado de `evidencia` a propósito: con la ruta aparte el backend puede
+    # preguntarle a GitHub cuándo se tocó ese archivo por última vez. Si quedara
+    # adentro de la prosa, habría que adivinarla con un patrón de texto.
+    # El backend descarta cualquier ruta que no esté entre las que se le
+    # mostraron al agente — una ruta inventada no llega a la base.
+    archivo_evidencia: str | None = Field(
+        default=None,
+        description=(
+            "La ruta exacta del archivo que más respalda este veredicto, copiada tal como "
+            "aparece en los archivos de la raíz o en los archivos clave que te pasaron. "
+            "'CLAUDE.md' si el veredicto se apoya en lo que declara ese archivo. null si "
+            "se apoya en la forma general de las carpetas o en el ritmo de commits, y "
+            "siempre null en 'sin_empezar'. Nunca una ruta que no te hayan pasado."
+        ),
+    )
 
 
 class ChecklistVerificado(BaseModel):

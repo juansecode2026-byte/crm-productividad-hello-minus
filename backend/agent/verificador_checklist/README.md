@@ -22,6 +22,30 @@ un escalón — entre `hecho` y `en_proceso` elige `en_proceso`; entre
 `en_proceso` y `sin_empezar`, elige `sin_empezar`. Siempre hacia abajo, que es
 la dirección barata.
 
+## El archivo de la evidencia (2026-09-24)
+
+Además del veredicto y la evidencia en prosa, el agente devuelve
+`archivo_evidencia`: la ruta del único archivo que más respalda su veredicto,
+`CLAUDE.md` si se apoyó en lo que declara ese archivo, o `null`. Va aparte de
+la prosa para que el backend pueda preguntarle a GitHub cuándo se tocó ese
+archivo por última vez — y con eso mostrar una fecha de cuándo se hizo el ítem.
+
+El agente solo nombra el archivo; la fecha la eligen `services/fechaEvidencia.ts`
+y la API de GitHub, sin Claude. El backend además descarta cualquier ruta que
+no esté entre las que se le mostraron al agente.
+
+**Probado contra este repo, 4 ítems:** las rutas salieron limpias y reales
+(`STACK.md`, `db/000_schema_inicial.sql`, `CLAUDE.md`), ninguna inventada, y las
+fechas cierran con la historia — las dos primeras dan 2026-08-28, el día que se
+creó el repo.
+
+**Algo que apareció en esa prueba y quedó sin resolver:** "Tests del flujo
+principal" salió `en_proceso`, cuando la semana anterior había sido
+`sin_empezar`. El agente contó como avance las verificaciones manuales que el
+`CLAUDE.md` describe (la prueba de RLS con transacción revertida). No son tests
+automáticos, que es lo que el ítem pide — el prompt probablemente necesita
+decirlo explícito.
+
 ## La regla que gobierna todo esto
 
 **El agente nunca escribe `completado`.** Solo llena `estado_agente`,

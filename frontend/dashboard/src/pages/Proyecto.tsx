@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { PieEvidencia } from '../components/PieEvidencia';
 import { diasEntre, fechaCorta } from '../lib/fechas';
 import { ETAPAS } from '../lib/etapas';
 import type { Bloqueo, ChecklistItem, Hito, HistorialEtapa, Proyecto as TipoProyecto } from '../lib/tipos';
@@ -20,7 +21,8 @@ import {
 import { borrarHito, cambiarEstadoHito, crearHito, listarHitos } from '../services/hitosService';
 import { listarPersonasActivas } from '../services/personasService';
 import { listarHistorialEtapas, obtenerProyecto } from '../services/proyectosService';
-import { crearTarea, listarTareas, type TareaConEvidencia } from '../services/tareasService';
+import { obtenerAporteIntegrantes, type SnapshotAporte } from '../services/indicadoresService';
+import { crearTarea, listarTareas, marcarTarea, type TareaConEvidencia } from '../services/tareasService';
 import estilos from './Proyecto.module.css';
 
 // Los cuatro estados de un ítem, de menos a más certeza. El símbolo no es
@@ -64,6 +66,7 @@ export function Proyecto() {
   const [explicaciones, setExplicaciones] = useState<Map<string, string>>(new Map());
   const [hitos, setHitos] = useState<Hito[]>([]);
   const [tareas, setTareas] = useState<TareaConEvidencia[]>([]);
+  const [aporte, setAporte] = useState<SnapshotAporte | null>(null);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
   const [personas, setPersonas] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +74,7 @@ export function Proyecto() {
   async function cargarTodo() {
     setError(null);
     try {
-      const [proy, hist, check, expl, hit, tar, bloq, pers] = await Promise.all([
+      const [proy, hist, check, expl, hit, tar, bloq, pers, apo] = await Promise.all([
         obtenerProyecto(proyectoId),
         listarHistorialEtapas(proyectoId),
         listarChecklist(proyectoId),
@@ -80,6 +83,7 @@ export function Proyecto() {
         listarTareas(proyectoId),
         listarBloqueos(proyectoId),
         listarPersonasActivas(),
+        obtenerAporteIntegrantes(proyectoId),
       ]);
       setProyecto(proy);
       setHistorial(hist);
@@ -89,6 +93,7 @@ export function Proyecto() {
       setTareas(tar);
       setBloqueos(bloq);
       setPersonas(Object.fromEntries(pers.map((p) => [p.id, p.nombre])));
+      setAporte(apo);
     } catch (excepcion) {
       setError(excepcion instanceof Error ? excepcion.message : 'No se pudo cargar el proyecto');
     }
@@ -225,6 +230,18 @@ export function Proyecto() {
   }
 
   // ---------------- tareas semanales ----------------
+  // Marcar una tarea no mueve "Aporte por integrante" en el acto: ese número es
+  // un snapshot que escribe el motor de indicadores, no un cálculo en vivo.
+  async function alternarTarea(tarea: TareaConEvidencia) {
+    setErrorTarea(null);
+    try {
+      await marcarTarea(proyectoId, tarea.id, !tarea.completado);
+      await cargarTodo();
+    } catch (excepcion) {
+      setErrorTarea(excepcion instanceof Error ? excepcion.message : 'No se pudo actualizar la tarea');
+    }
+  }
+
   const [mostrarFormTarea, setMostrarFormTarea] = useState(false);
   const [nuevaTareaTitulo, setNuevaTareaTitulo] = useState('');
   const [nuevaTareaInicio, setNuevaTareaInicio] = useState('');
@@ -529,13 +546,22 @@ export function Proyecto() {
                               </div>
                             )}
                             {item.evidencia && <div className={estilos.evidencia}>{item.evidencia}</div>}
-                            {/* Solo firma lo confirmado: en los otros tres, la etiqueta
-                                de la derecha ya dice el estado y repetirlo acá es ruido. */}
-                            {item.completado && (
-                              <div className={estilos.firma}>
-                                confirmado por {nombrePersona(item.completado_por)} ·{' '}
-                                {fechaCorta(item.completado_en)}
-                              </div>
+                            {/* Firma solo lo confirmado y lo que el agente da por hecho:
+                                son los dos estados donde "¿cuándo se hizo?" tiene sentido.
+                                En "en proceso" y "falta" la etiqueta de la derecha ya
+                                dice el estado y una fecha sería ruido. */}
+                            {(estado === 'confirmado' || estado === 'hecho') && (
+                              <PieEvidencia
+                                tono={estado === 'confirmado' ? 'confirmado' : 'detectado'}
+                                prefijo={
+                                  estado === 'confirmado'
+                                    ? `confirmado por ${nombrePersona(item.completado_por)} · ${fechaCorta(item.completado_en)}`
+                                    : `detectado el ${fechaCorta(item.verificado_en)}`
+                                }
+                                fecha={item.evidencia_fecha}
+                                origen={item.evidencia_fecha_origen}
+                                archivo={item.evidencia_archivo}
+                              />
                             )}
                           </div>
                           {/* De los cuatro estados, "hecho" es el único que pide algo —
@@ -695,6 +721,70 @@ export function Proyecto() {
         </div>
 
         <div className={estilos.columna}>
+          {/* ---------------- aporte por integrante (indicador #29) ---------------- */}
+          <section className={estilos.seccion}>
+            <div className={estilos.encabezadoSeccion}>
+              <h2>Aporte por integrante</h2>
+              <span className={estilos.permiso}>
+                {aporte ? `semana del ${fechaCorta(aporte.periodo)}` : 'sin calcular'}
+              </span>
+            </div>
+            <div className={estilos.bloque}>
+              {!aporte || aporte.por_persona.length === 0 ? (
+                <p className={estilos.vacio}>
+                  Todavía no hay cálculo. Sale de las tareas semanales: cuando alguien tenga tareas
+                  asignadas acá y el motor de indicadores corra, aparece lo que cada quien completó
+                  de lo suyo.
+                </p>
+              ) : (
+                <>
+                  <p className={estilos.aporteNota}>
+                    Cada barra mide contra el 100% de esa persona — lo que le tocaba a ella — no
+                    contra el proyecto. Dos barras no se suman.
+                  </p>
+                  {aporte.por_persona.map((p) => (
+                    <div key={p.persona_id} className={estilos.aporteFila}>
+                      <div className={estilos.aporteAvatar} aria-hidden="true">
+                        {nombrePersona(p.persona_id)
+                          .split(/\s+/)
+                          .slice(0, 2)
+                          .map((parte) => parte[0])
+                          .join('')
+                          .toUpperCase()}
+                      </div>
+                      <div className={estilos.aporteCuerpo}>
+                        <div className={estilos.aporteNombreFila}>
+                          <span className={estilos.aporteNombre}>{nombrePersona(p.persona_id)}</span>
+                          <span className={estilos.aportePct}>{p.porcentaje}%</span>
+                        </div>
+                        <div
+                          className={estilos.aporteBarra}
+                          role="progressbar"
+                          aria-valuenow={p.porcentaje}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${nombrePersona(p.persona_id)}: ${p.porcentaje}% de sus tareas`}
+                        >
+                          <span style={{ width: `${p.porcentaje}%` }} />
+                        </div>
+                        <div className={estilos.aporteDetalle}>
+                          <b>
+                            {p.completadas} de {p.asignadas}
+                          </b>{' '}
+                          {p.asignadas === 1 ? 'tarea asignada' : 'tareas asignadas'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <p className={estilos.aporteCalculado}>
+                    Calculado {fechaCorta(aporte.calculado_en)}. Marcar una tarea no lo mueve al
+                    instante: se actualiza cuando corre el motor.
+                  </p>
+                </>
+              )}
+            </div>
+          </section>
+
           {/* ---------------- tareas semanales ---------------- */}
           <section className={estilos.seccion}>
             <div className={estilos.encabezadoSeccion}>
@@ -709,7 +799,23 @@ export function Proyecto() {
                     {fechaCorta(tarea.semana_inicio)} — {fechaCorta(tarea.semana_fin)} ·{' '}
                     {nombrePersona(tarea.persona_id).toUpperCase()}
                   </div>
-                  <div className={estilos.tituloTarea}>{tarea.titulo}</div>
+                  <div className={estilos.tareaCab}>
+                    <button
+                      type="button"
+                      className={`${estilos.caja} ${tarea.completado ? estilos.cajaHecha : ''}`}
+                      onClick={() => alternarTarea(tarea)}
+                      aria-pressed={tarea.completado}
+                      aria-label={tarea.completado ? 'Marcar como abierta' : 'Marcar como terminada'}
+                    >
+                      {tarea.completado ? '✓' : ''}
+                    </button>
+                    <div className={`${estilos.tituloTarea} ${tarea.completado ? estilos.tituloHecho : ''}`}>
+                      {tarea.titulo}
+                    </div>
+                  </div>
+                  {tarea.completado && tarea.completado_en && (
+                    <div className={estilos.tareaCerrada}>terminada {fechaCorta(tarea.completado_en)}</div>
+                  )}
                   {tarea.areas.map((area) => {
                     const evidenciaArea = tarea.tarea_evidencia.filter((e) => e.area === area);
                     const conRastro = evidenciaArea.length > 0;

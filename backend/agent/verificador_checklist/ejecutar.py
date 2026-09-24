@@ -9,7 +9,7 @@ Uso:
     echo '{"owner":"...","repo":"...","items":[...]}' | python -m verificador_checklist.ejecutar
 
 Salida:
-    {"veredictos": [{"id": "...", "detectado": true, "evidencia": "..."}, ...]}
+    {"veredictos": [{"id": "...", "estado": "hecho", "evidencia": "...", "archivo_evidencia": "..."}, ...]}
     o, si algo falla:
     {"error": "mensaje para mostrar"}
 """

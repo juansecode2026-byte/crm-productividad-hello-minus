@@ -1,0 +1,258 @@
+.cabecera {
+  padding: 16px 16px 0;
+}
+.miga {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.03em;
+}
+.cabecera h1 {
+  font-size: 19px;
+  margin: 4px 0 6px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.desc {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 70ch;
+}
+.seccion {
+  padding: 16px;
+}
+
+.nota {
+  margin-bottom: 16px;
+  padding: 11px 14px;
+  background: var(--guia-tenue);
+  border-left: 3px solid var(--guia);
+  border-radius: 0 8px 8px 0;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.nota b {
+  color: var(--guia);
+}
+.error {
+  background: var(--error-tenue);
+  color: var(--error);
+  border-radius: var(--radio-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+.cargando {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.resumen {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.stat {
+  flex: 1 1 140px;
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 11px 14px;
+}
+.cifra {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.etiquetaStat {
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.stat.respaldo .cifra {
+  color: var(--ok);
+}
+.stat.telemetria .cifra {
+  color: var(--acento);
+}
+.stat.sin_campo .cifra {
+  color: var(--error);
+}
+
+.leyendas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.leyenda {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 9px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.leyenda b {
+  color: var(--ink-2);
+}
+
+/* Mismo vocabulario de glifos que la escala de certeza del checklist
+   (○ ◐ ✓), aplicado a otra pregunta: ahí es "¿está construido?", acá es
+   "¿hay de dónde sacar este número?". El color nunca va solo. */
+.glifo {
+  font-family: var(--mono);
+  font-weight: 700;
+  display: inline-block;
+  width: 14px;
+  text-align: center;
+}
+.glifo.respaldo {
+  color: var(--ok);
+}
+.glifo.telemetria {
+  color: var(--acento);
+}
+.glifo.sin_campo {
+  color: var(--error);
+}
+
+.seccionTipo {
+  margin-bottom: 22px;
+}
+.tipoCab {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--linea-fuerte);
+}
+.tipoCab h2 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+.tipoCuenta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+/* Scroll horizontal propio: en un celular la tabla se desliza en vez de
+   aplastar columnas hasta dejar una sola visible. */
+.tablaEnvoltura {
+  overflow-x: auto;
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+}
+.tablaEnvoltura table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.tablaEnvoltura th {
+  text-align: left;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  font-weight: 600;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--linea);
+}
+.tablaEnvoltura td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--linea);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+.tablaEnvoltura tr:last-child td {
+  border-bottom: 0;
+}
+
+.codigo {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+.nombre {
+  color: var(--ink);
+  font-weight: 500;
+}
+.subnota {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  line-height: 1.45;
+  max-width: 52ch;
+}
+.comparacion {
+  font-size: 11px;
+  color: var(--acento);
+  margin-top: 4px;
+  line-height: 1.45;
+  max-width: 52ch;
+}
+
+.gr {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid var(--linea-fuerte);
+  color: var(--ink-3);
+}
+.gr.b {
+  border-color: var(--acento);
+  color: var(--acento);
+}
+.gr.c {
+  border-color: var(--dormido);
+  color: var(--dormido);
+}
+.gr.n {
+  border-color: var(--guia);
+  color: var(--guia);
+}
+
+.mod {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.mod.si {
+  color: var(--ok);
+}
+.mod.no {
+  color: var(--dormido);
+}
+.mod.rev {
+  color: var(--alerta);
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+
+.fuenteCelda {
+  min-width: 150px;
+}
+.tabla {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  margin-top: 3px;
+  line-height: 1.4;
+}

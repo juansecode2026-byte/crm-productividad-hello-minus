@@ -1,0 +1,81 @@
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.detectado {
+  color: var(--alerta);
+}
+.confirmado {
+  color: var(--ok);
+}
+.separador {
+  color: var(--ink-3);
+}
+.fecha {
+  color: inherit;
+}
+.sinFecha {
+  color: inherit;
+  font-style: italic;
+}
+
+/* La fecha entera es el botón (clic, toque, teclado), no un tooltip: al pasar
+   el mouse no pasa nada, porque en el celular no hay mouse que pase. El color
+   vive acá, no en .fecha/.sinFecha, para que texto e ícono cambien juntos
+   con un solo `color` — el ícono sigue con `stroke="currentColor"`. */
+.disparador {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 3px;
+  margin: -5px -3px;
+  border: none;
+  background: none;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.disparador:hover,
+.disparador:focus-visible,
+.disparador[aria-expanded='true'] {
+  color: var(--guia);
+}
+.disparador:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+.icono {
+  flex: 0 0 auto;
+}
+
+/* Mismo violeta que "en palabras simples": las dos son la voz que explica,
+   no un estado del ítem. */
+.explicacion {
+  margin-top: 7px;
+  padding: 8px 11px;
+  background: var(--guia-tenue);
+  border-left: 3px solid var(--guia);
+  border-radius: 0 6px 6px 0;
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.explicacion b {
+  color: var(--guia);
+}
+.explicacion code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  background: var(--panel);
+  border: 1px solid var(--linea);
+  border-radius: 3px;
+  padding: 0 4px;
+}

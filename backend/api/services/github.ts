@@ -216,6 +216,21 @@ export async function estructuraRepo(owner: string, repo: string): Promise<Estru
   };
 }
 
+// Fecha (YYYY-MM-DD) del último commit que tocó un archivo puntual. Es la
+// fecha del autor, no la de quien lo mergeó: la misma que usa
+// estadisticasRepo, así las dos hablan del mismo momento.
+//
+// Devuelve null si GitHub no encuentra commits para esa ruta — y eso vale
+// también como validación: una ruta que el agente se inventó no tiene
+// historial, así que termina sin fecha en vez de con una falsa.
+export async function ultimoCommitDeArchivo(owner: string, repo: string, ruta: string): Promise<string | null> {
+  const commits = await api<CommitApi[]>(
+    `/repos/${owner}/${repo}/commits?path=${encodeURIComponent(ruta)}&per_page=1`,
+  );
+  const fecha = commits?.[0]?.commit.author?.date;
+  return fecha ? fecha.slice(0, 10) : null;
+}
+
 // La señal más directa que existe, cuando existe: un CLAUDE.md al día declara
 // en texto qué está construido, en vez de obligar a deducirlo de la forma de
 // las carpetas. Es opcional a propósito — la mayoría de los repos no lo tiene,

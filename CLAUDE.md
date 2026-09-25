@@ -358,14 +358,71 @@ esperado a mano, y confirmando después que la base quedó igual que antes).
 error pero no escribieron nada — no es un fallo, es "sin datos no hay
 snapshot": `tareas_semanales` y `bloqueos` siguen vacías en producción.
 
+**Los 12 indicadores ◐ también están construidos y probados** (2026-09-25, con
+Sonnet, un día después de activar la telemetría de este mismo repo — ver
+"Telemetría propia" más abajo). Mismo molde y mismas reglas que los 13 ✓:
+
+| Código | Scope | Nota |
+|---|---|---|
+| `02_ratio_facturable` | persona | % facturable de TODO el tiempo de la persona, no de un proyecto puntual |
+| `05_dispersion` | persona | proyectos distintos con horas registradas ESTA semana |
+| `07_continuidad_foco` | persona | horas activas del día / proyectos distintos del día, promediado sobre la semana |
+| `08_densidad_interrupciones` | persona | cambios de proyecto entre sesiones consecutivas del mismo día (`lag`) |
+| `09_horas_por_proyecto` | proyecto | acumulado — igual que `13` pero con horas en vez de commits |
+| `10_sesiones_claude_code` | proyecto | acumulado — el primero de los 12 con datos reales desde el día uno |
+| `11_perfil_especializacion` | persona | % de tiempo por área, de TODOS los proyectos. `valor` NULL, como `26` y `29` |
+| `15_rendimiento_hito` | proyecto | Grupo B, solo individual — horas/hito de este proyecto vs. el promedio de otros individuales de la misma persona, misma estructura que `23` |
+| `16_contribucion_ponderada` | proyecto | Grupo B, solo individual — reparto del propio tiempo por área dentro de un proyecto, no compara contra nadie (a diferencia de `11`) |
+| `18_ratio_colaboradores` | proyecto | acumulado — con 1 colaborador el número sale solo, sin caso especial (igual que `17`/`20`) |
+| `25_modo_solitario` | portafolio | el único de los 12 con un número único honesto: % de horas de la empresa que fueron en proyectos individuales |
+| `27_balance_carga` | portafolio | `PORTAFOLIO_SENTINEL`, `valor` NULL — es la única comparación directa entre personas que el propio doc pide (no viola la regla de "Aporte por integrante": ahí la prohibición es entre porcentajes dentro de un mismo proyecto, esto es un total de empresa) |
+
+Probados en una sola transacción revertida, sembrando `registro_tiempo`,
+`hitos`, `sesiones_claude_code` y un segundo proyecto individual efímero —
+los 12 dieron el resultado esperado a mano, incluida una verificación cruzada
+con datos reales que ya existían (una fila de `registro_tiempo` de 0.01
+horas y sesiones reales adicionales, producto de que la telemetría de este
+repo ya está viva).
+
 **La columna "fuente" del catálogo es un hecho del esquema, no de los datos**
 (`FUENTE` en `lib/indicadores.ts`): ✓ el esquema lo respalda, ◐ espera
 telemetría de Claude Code, ○ falta capturar un dato. Regla: se mide lo que el
 doc DEFINE, no un sustituto — si dice "% de tiempo", un proxy con commits sería
-otro indicador con el mismo nombre. Quedó 13 ✓ · 12 ◐ · 4 ○. Los 4 sin campo
-necesitan capturar algo que hoy no existe: estimación por tarea (03),
-capacidad por persona (06), catálogo de tipo de proyecto (12), tiempo en
-reuniones (19).
+otro indicador con el mismo nombre. **Los 29 de 29 están construidos y
+probados** (originalmente 13 ✓ + 12 ◐ + 4 ○, completado el 2026-09-25 — los
+4 ○ pasaron a ✓ en `lib/indicadores.ts` apenas la migración 017 les dio
+campo real; el esquema ya no distingue esos 4 de los primeros 13).
+
+**Los 4 ○ necesitaron migración nueva** (`db/migrations/017_captura_indicadores_o.sql`),
+decidida ítem por ítem con el usuario antes de escribir nada — 4 tablas, cada
+una con su propia razón de forma:
+
+| Código | Tabla nueva | Nota |
+|---|---|---|
+| `03_precision_estimacion` | `estimaciones_tarea` | tabla aparte de `tareas_semanales`, con su propio rango de fechas — una estimación puede cubrir menos que la semana entera de la tarea |
+| `06_carga_vs_capacidad` | `capacidad_persona` | con historial (`vigente_desde`), no un solo campo en `personas` — perder el valor viejo rompería indicadores de semanas pasadas |
+| `12_versatilidad` | `tipos_proyecto` + `proyectos.tipo_id` | mismo patrón que `canales_venta`: tabla chica, no enum. Sembrada con 7 tipos (CRM, Chatbot, Dashboard, Integración, Sitio web, Automatización, Otro). `proyectos.tipo` (texto libre) no se migra — nunca se sembró con disciplina |
+| `19_capacidad_coordinacion` | `reuniones` | **la única captura manual de tiempo en todo el sistema** — `registro_tiempo` sigue 100% inferido (Fase 04, sin tocar). `proyecto_id` obligatorio: el doc marca esto "No aplica" en individual, así que ese caso nunca tiene filas, sin necesitar filtrar por modalidad en el SQL |
+
+Ninguna de las 4 tablas nuevas tiene pantalla todavía para cargar datos —
+existen y tienen RLS, pero hoy solo se llenarían a mano (SQL directo) o
+esperando que alguien construya el formulario. Probadas en una transacción
+revertida sembrando las 4 a la vez; sin datos reales todavía.
+
+### Telemetría propia (2026-09-25)
+
+Este repo fue el primer proyecto en activar telemetría real de Claude Code —
+hasta entonces todo daba 0. Clave de ingesta creada por SQL directo (no hay
+botón en el dashboard todavía — `POST /proyectos/:id/claves` existe en el
+backend, sin pantalla); las 6 variables OTEL viven en
+`.claude/settings.local.json` (gitignorado por una regla global, nunca en
+`backend/api/.env`, que no lo lee Claude Code). Se encontró y corrigió un
+desajuste real: `personas.email` de Juan no coincidía con el email de su
+cuenta de Claude, lo que hubiera dejado cada sesión huérfana (sin
+`persona_id`) — verificado que el trigger de `auth_user_id` (migración 001)
+solo corre una vez al registrarse, así que corregir el email no rompe el
+login. Confirmado con datos reales: aparecieron sesiones nuevas en
+`sesiones_claude_code`, correctamente atribuidas.
 
 **`tareas_semanales.completado`** (migración 014) existe para esto: #29 necesita
 "esto es tuyo" + "esto está terminado", y ninguna tabla juntaba las dos
@@ -654,12 +711,9 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
   detalladas arriba).
 - Sembrar catálogos: `roles_proyecto`, `canales_venta`.
   (`indicador_catalogo` e `indicador_aplicabilidad` ya se sembraron — migración 015.)
-- El secreto `DATABASE_URL` que necesita `calcular-indicadores.yml` **ya está
-  configurado en GitHub** (desde el 2026-09-17, el mismo que usa
-  `clasificador-commits.yml` — verificado con `gh secret list` y corridas
-  reales). Falta solo que este workflow se pushee para que `workflow_run`
-  empiece a dispararlo. Los 13 calculadores ✓ ya están construidos y probados;
-  4 ya escribieron snapshots reales el 2026-09-24 (`13`, `17`, `20`, `24`) —
-  los otros 9 esperan que haya datos reales en `tareas_semanales`/`bloqueos`,
-  hoy vacías. Quedan los 16 que esperan telemetría (12 ◐) o un dato que no
-  se captura (4 ○). Ver la sección Fase 07.
+- **Motor de indicadores: los 29 de 29 están construidos y probados**,
+  disparador (`calcular-indicadores.yml`) pusheado y con `DATABASE_URL` ya
+  configurado — solo falta la próxima corrida real de `workflow_run` tras el
+  Clasificador para verlo andar solo. Las 4 tablas nuevas de los indicadores
+  ○ (migración 017) no tienen pantalla para cargar datos todavía — hoy solo
+  se llenarían a mano. Ver la sección Fase 07.

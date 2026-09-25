@@ -30,10 +30,12 @@ Reglas que valen para todos los calculadores:
     Postgres no considera iguales dos NULL en un UNIQUE, así que el upsert
     contra snapshot_unico no pisaría nada: duplicaría una fila por corrida.
 
-Los 13 indicadores con fuente ✓ del catálogo (frontend/dashboard/src/lib/
-indicadores.ts, FUENTE) — el esquema ya los respalda, sin esperar telemetría
-que no llegó ni un dato que no se captura todavía. Ver CLAUDE.md, Fase 07,
-para los 12 ◐ y 4 ○ que siguen pendientes.
+**Los 29 de 29 están construidos y probados.** Los 13 ✓ (el esquema ya los
+respalda), los 12 ◐ (esperan telemetría de Claude Code) y, desde la
+migración 017, los 4 ○ que necesitaban un campo nuevo — no había forma de
+calcularlos sin antes decidir dónde vive ese dato. Ver CLAUDE.md, Fase 07, y
+frontend/dashboard/src/lib/indicadores.ts (FUENTE) para el detalle de cada
+uno.
 
   13_commits_proyecto     — acumulado. El primero, para probar el motor
                             contra algo que ya existía (dio 3).
@@ -67,6 +69,54 @@ para los 12 ◐ y 4 ○ que siguen pendientes.
                             número sin decir cuál es cuál.
   28_intervencion_cruzada — acumulado. Commits de alguien que no es el
                             encargado, en un proyecto marcado individual.
+
+Los 12 ◐ (2026-09-25, un día después de activar la telemetría de este mismo
+repo — antes daba 0 en todos lados):
+
+  02_ratio_facturable     — scope='persona': % facturable de TODO el tiempo
+                            de la persona, no de un proyecto puntual.
+  05_dispersion           — scope='persona'. Proyectos distintos ESTA semana.
+  07_continuidad_foco     — scope='persona'. Horas activas del día / proyectos
+                            distintos del día, promediado sobre la semana.
+  08_densidad_interrupciones — scope='persona'. Cambios de proyecto entre
+                            sesiones consecutivas del mismo día (LAG).
+  09_horas_por_proyecto   — acumulado, proyecto. Como 13 pero con horas.
+  10_sesiones_claude_code — acumulado, proyecto. El primero de los 12 con
+                            datos reales desde el día uno.
+  11_perfil_especializacion — scope='persona'. % de tiempo por área, TODOS
+                            los proyectos. valor NULL, como 26 y 29.
+  15_rendimiento_hito     — Grupo B, solo individual. Horas/hito de este
+                            proyecto vs. el promedio de otros individuales de
+                            la misma persona — misma estructura que 23.
+  16_contribucion_ponderada — Grupo B, solo individual. Reparto del propio
+                            tiempo por área DENTRO de un proyecto — no
+                            compara contra nadie, a diferencia de 11.
+  18_ratio_colaboradores  — acumulado, proyecto. Con 1 colaborador el número
+                            sale solo, sin caso especial (igual que 17/20).
+  25_modo_solitario       — scope='portafolio'. Único de los 12 con un
+                            número único honesto: % de horas de LA EMPRESA
+                            que fueron en proyectos individuales.
+  27_balance_carga        — scope='portafolio', PORTAFOLIO_SENTINEL. Suma de
+                            horas por persona — es la única comparación
+                            directa entre personas que el propio doc pide.
+
+Los 4 ○ (2026-09-25, sobre la migración 017 — 4 tablas nuevas decididas en
+conversación con el usuario, cada una con su propia razón de forma):
+
+  03_precision_estimacion — proyecto. Compara estimaciones_tarea.horas_estimadas
+                            contra registro_tiempo real DENTRO del rango que
+                            la propia estimación declaró, no la semana entera
+                            de la tarea.
+  06_carga_vs_capacidad   — scope='persona'. Horas trabajadas ESTA semana /
+                            capacidad_persona vigente (DISTINCT ON resuelve
+                            "la más reciente antes de esta fecha").
+  12_versatilidad         — scope='persona', acumulado. Tipos de proyecto
+                            (tipos_proyecto) distintos tocados — proyectos
+                            sin tipo_id todavía no cuentan.
+  19_capacidad_coordinacion — proyecto, acumulado. % de horas en reuniones
+                            vs. trabajo real. Solo aparece en proyectos con
+                            filas en `reuniones` (siempre equipo, por diseño
+                            de la tabla) — un individual nunca tiene ninguna.
 
 Uso:
     DATABASE_URL=postgresql://... python calcular_indicadores.py
@@ -633,6 +683,539 @@ INTERVENCION_CRUZADA = """
     do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
 """
 
+# =============================================================================
+# Los 12 ◐ — esperan telemetría de Claude Code (registro_tiempo,
+# sesiones_claude_code). Construidos el 2026-09-25, un día después de que la
+# telemetría de este mismo repo empezara a estar viva: siguen el mismo molde
+# que los 13 ✓, probados en transacciones revertidas, listos para cuando haya
+# datos reales detrás. `registro_tiempo` sigue vacía hasta que corra
+# derivar_registro_tiempo.py (1 AM Colombia); `sesiones_claude_code` ya tiene
+# 2 filas reales de este repo.
+# =============================================================================
+
+# % del tiempo que es facturable vs. interno — de TODOS los proyectos de la
+# persona, no de uno solo (el doc dice "de todo tu tiempo"). scope='persona':
+# es un hecho de la persona, no de un proyecto puntual, así que no choca con
+# la regla de "proyecto+persona no puede ir en scope_type='persona'" — esa
+# regla es para indicadores que SÍ varían por proyecto; este no.
+RATIO_FACTURABLE = """
+    with por_persona as (
+        select persona_id,
+               sum(horas) as horas_totales,
+               sum(horas) filter (where tipo = 'facturable') as horas_facturables
+          from registro_tiempo
+         group by persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '02_ratio_facturable',
+        'persona'::ambito_indicador,
+        persona_id,
+        date_trunc('week', current_date)::date,
+        round(100.0 * horas_facturables / horas_totales, 1),
+        jsonb_build_object('horas_totales', horas_totales, 'horas_facturables', horas_facturables)
+      from por_persona
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# En cuántos proyectos distintos registró horas la persona ESTA semana.
+DISPERSION = """
+    with semana as (
+        select persona_id, count(distinct proyecto_id) as proyectos
+          from registro_tiempo
+         where fecha >= date_trunc('week', current_date)::date
+           and fecha <  date_trunc('week', current_date)::date + 7
+         group by persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '05_dispersion',
+        'persona'::ambito_indicador,
+        persona_id,
+        date_trunc('week', current_date)::date,
+        proyectos,
+        jsonb_build_object('proyectos_distintos', proyectos)
+      from semana
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Horas seguidas en un mismo proyecto vs. saltos entre varios en un día —
+# se arma por día (horas activas del día / proyectos distintos tocados ese
+# día) y se promedia sobre los días con actividad de la semana. Más alto es
+# más foco; requiere duracion_activa, que llena derivar_registro_tiempo.py,
+# no la ingesta de OTEL directo.
+CONTINUIDAD_FOCO = """
+    with por_dia as (
+        select persona_id, (inicio at time zone 'utc')::date as dia,
+               count(distinct proyecto_id) as proyectos_dia,
+               sum(extract(epoch from duracion_activa)) / 3600.0 as horas_dia
+          from sesiones_claude_code
+         where duracion_activa is not null
+           and inicio >= date_trunc('week', current_date)
+           and inicio <  date_trunc('week', current_date) + interval '7 days'
+         group by persona_id, (inicio at time zone 'utc')::date
+    ),
+    continuidad as (
+        select persona_id, avg(horas_dia / proyectos_dia) as continuidad_promedio, count(*) as dias
+          from por_dia
+         where proyectos_dia > 0
+         group by persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '07_continuidad_foco',
+        'persona'::ambito_indicador,
+        persona_id,
+        date_trunc('week', current_date)::date,
+        round(continuidad_promedio, 2),
+        jsonb_build_object('horas_por_proyecto_por_dia_promedio', round(continuidad_promedio, 2), 'dias_con_actividad', dias)
+      from continuidad
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Cambios de proyecto dentro de un mismo día: compara cada sesión contra la
+# anterior del mismo día (LAG por persona+día, ordenado por inicio) y cuenta
+# cuántas veces el proyecto cambió. La primera sesión del día nunca cuenta
+# como cambio — recién empieza, no interrumpió nada.
+DENSIDAD_INTERRUPCIONES = """
+    with sesiones_semana as (
+        select persona_id, proyecto_id, (inicio at time zone 'utc')::date as dia,
+               lag(proyecto_id) over (partition by persona_id, (inicio at time zone 'utc')::date order by inicio) as proyecto_anterior
+          from sesiones_claude_code
+         where inicio >= date_trunc('week', current_date)
+           and inicio <  date_trunc('week', current_date) + interval '7 days'
+    ),
+    cambios_por_dia as (
+        select persona_id, dia,
+               count(*) filter (where proyecto_anterior is not null and proyecto_anterior <> proyecto_id) as cambios
+          from sesiones_semana
+         group by persona_id, dia
+    ),
+    totales as (
+        select persona_id, sum(cambios) as cambios_totales, count(*) as dias
+          from cambios_por_dia
+         group by persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '08_densidad_interrupciones',
+        'persona'::ambito_indicador,
+        persona_id,
+        date_trunc('week', current_date)::date,
+        round(cambios_totales::numeric / dias, 1),
+        jsonb_build_object('cambios_totales', cambios_totales, 'dias_con_actividad', dias)
+      from totales
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Total de horas registradas por proyecto — acumulado, como 13 y 09.
+HORAS_PROYECTO = """
+    with por_persona as (
+        select proyecto_id, persona_id, sum(horas) as horas
+          from registro_tiempo
+         group by proyecto_id, persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '09_horas_por_proyecto',
+        'proyecto'::ambito_indicador,
+        proyecto_id,
+        date_trunc('week', current_date)::date,
+        sum(horas),
+        jsonb_build_object(
+            'por_persona', jsonb_agg(jsonb_build_object('persona_id', persona_id, 'horas', horas) order by horas desc)
+        )
+      from por_persona
+     group by proyecto_id
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Sesiones y prompts por proyecto — acumulado. El primero de los 12 con
+# datos reales desde el día uno: este repo ya tiene 2 sesiones propias.
+SESIONES_CLAUDE_CODE = """
+    with por_persona as (
+        select proyecto_id, persona_id, count(*) as sesiones, sum(prompt_count) as prompts
+          from sesiones_claude_code
+         where proyecto_id is not null
+         group by proyecto_id, persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '10_sesiones_claude_code',
+        'proyecto'::ambito_indicador,
+        proyecto_id,
+        date_trunc('week', current_date)::date,
+        sum(sesiones),
+        jsonb_build_object(
+            'por_persona', jsonb_agg(jsonb_build_object('persona_id', persona_id, 'sesiones', sesiones, 'prompts', prompts) order by sesiones desc)
+        )
+      from por_persona
+     group by proyecto_id
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# % de tiempo por área, de TODOS los proyectos de la persona — scope='persona'
+# por la misma razón que 02. valor NULL: un reparto entre varias áreas no
+# cabe en un solo número, mismo criterio que 26 y 29.
+PERFIL_ESPECIALIZACION = """
+    with por_area as (
+        select persona_id, coalesce(area, 'sin_clasificar') as area, sum(horas) as horas
+          from registro_tiempo
+         group by persona_id, area
+    ),
+    totales as (
+        select persona_id, sum(horas) as total
+          from por_area
+         group by persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '11_perfil_especializacion',
+        'persona'::ambito_indicador,
+        pa.persona_id,
+        date_trunc('week', current_date)::date,
+        null,
+        jsonb_build_object(
+            'por_area', jsonb_agg(jsonb_build_object('area', pa.area, 'horas', pa.horas, 'porcentaje', round(100.0 * pa.horas / t.total, 1))
+                                   order by pa.horas desc)
+        )
+      from por_area pa
+      join totales t on t.persona_id = pa.persona_id
+     group by pa.persona_id, t.total
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Grupo B: horas por hito de ESTE proyecto individual contra el promedio de
+# los OTROS individuales de la misma persona — misma estructura de
+# autocomparación que 23, pero con horas/hito en vez de tareas/semana. Un
+# hito sin fecha_real pero estado='cumplido' igual cuenta (el estado es lo
+# que importa, no la fecha).
+RENDIMIENTO_HITO = """
+    with individuales as (
+        select id as proyecto_id, encargado_id as persona_id from proyectos where modalidad = 'individual'
+    ),
+    horas_proyecto as (
+        select rt.proyecto_id, sum(rt.horas) as horas
+          from registro_tiempo rt
+          join individuales i on i.proyecto_id = rt.proyecto_id
+         group by rt.proyecto_id
+    ),
+    hitos_cumplidos as (
+        select proyecto_id, count(*) as hitos
+          from hitos
+         where estado = 'cumplido'
+         group by proyecto_id
+    ),
+    ritmo as (
+        select i.proyecto_id, i.persona_id, hp.horas / hc.hitos as horas_por_hito
+          from individuales i
+          join horas_proyecto hp on hp.proyecto_id = i.proyecto_id
+          join hitos_cumplidos hc on hc.proyecto_id = i.proyecto_id
+         where hc.hitos > 0
+    ),
+    historico as (
+        select r1.persona_id, r1.proyecto_id as proyecto_actual, avg(r2.horas_por_hito) as historico
+          from ritmo r1
+          join ritmo r2 on r2.persona_id = r1.persona_id and r2.proyecto_id <> r1.proyecto_id
+         group by r1.persona_id, r1.proyecto_id
+        having avg(r2.horas_por_hito) > 0
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '15_rendimiento_hito',
+        'proyecto'::ambito_indicador,
+        h.proyecto_actual,
+        date_trunc('week', current_date)::date,
+        round(r.horas_por_hito / h.historico, 2),
+        jsonb_build_object(
+            'horas_por_hito_actual',    round(r.horas_por_hito, 1),
+            'horas_por_hito_historico', round(h.historico, 1),
+            'ratio',                    round(r.horas_por_hito / h.historico, 2)
+        )
+      from historico h
+      join ritmo r on r.proyecto_id = h.proyecto_actual and r.persona_id = h.persona_id
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Grupo B: en un proyecto individual (una sola persona), cómo se reparte SU
+# propio tiempo entre áreas dentro de ESE proyecto — no compara contra nadie,
+# a diferencia de 11 que mira el portafolio entero de la persona. valor NULL
+# por la misma razón que 11.
+CONTRIBUCION_PONDERADA = """
+    with individuales as (
+        select id as proyecto_id from proyectos where modalidad = 'individual'
+    ),
+    por_area as (
+        select rt.proyecto_id, rt.persona_id, coalesce(rt.area, 'sin_clasificar') as area, sum(rt.horas) as horas
+          from registro_tiempo rt
+          join individuales i on i.proyecto_id = rt.proyecto_id
+         group by rt.proyecto_id, rt.persona_id, rt.area
+    ),
+    totales as (
+        select proyecto_id, persona_id, sum(horas) as total
+          from por_area
+         group by proyecto_id, persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '16_contribucion_ponderada',
+        'proyecto'::ambito_indicador,
+        pa.proyecto_id,
+        date_trunc('week', current_date)::date,
+        null,
+        jsonb_build_object(
+            'por_persona', jsonb_agg(jsonb_build_object(
+                'persona_id', pa.persona_id, 'area', pa.area, 'horas', pa.horas,
+                'porcentaje', round(100.0 * pa.horas / t.total, 1)
+            ) order by pa.persona_id, pa.horas desc)
+        )
+      from por_area pa
+      join totales t on t.proyecto_id = pa.proyecto_id and t.persona_id = pa.persona_id
+     group by pa.proyecto_id
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Colaboradores activos / horas efectivas del proyecto. El doc lo marca "No
+# aplica" en individual (indicador_aplicabilidad ya lo esconde ahí) — no hace
+# falta un caso especial en el SQL: con 1 colaborador el número sale solo,
+# igual que 17 y 20.
+RATIO_COLABORADORES = """
+    with miembros as (
+        select proyecto_id, count(*) as colaboradores
+          from miembros_proyecto
+         where fecha_salida is null
+         group by proyecto_id
+    ),
+    horas as (
+        select proyecto_id, sum(horas) as horas_totales
+          from registro_tiempo
+         group by proyecto_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '18_ratio_colaboradores',
+        'proyecto'::ambito_indicador,
+        m.proyecto_id,
+        date_trunc('week', current_date)::date,
+        round(m.colaboradores / h.horas_totales, 4),
+        jsonb_build_object('colaboradores', m.colaboradores, 'horas_totales', h.horas_totales)
+      from miembros m
+      join horas h on h.proyecto_id = m.proyecto_id
+     where h.horas_totales > 0
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# De TODAS las horas de la empresa (los dos, todos los proyectos), qué % fue
+# en proyectos individuales — el único de los 12 que sí da un número único
+# honesto (es un porcentaje del total, no dos cosas que no se pueden sumar).
+MODO_SOLITARIO = f"""
+    with agregado as (
+        select
+            sum(rt.horas) filter (where p.modalidad = 'individual') as horas_individual,
+            sum(rt.horas) filter (where p.modalidad = 'equipo')     as horas_equipo,
+            sum(rt.horas)                                           as horas_totales
+          from registro_tiempo rt
+          join proyectos p on p.id = rt.proyecto_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '25_modo_solitario',
+        'portafolio'::ambito_indicador,
+        '{PORTAFOLIO_SENTINEL}'::uuid,
+        date_trunc('week', current_date)::date,
+        round(100.0 * coalesce(horas_individual, 0) / horas_totales, 1),
+        jsonb_build_object(
+            'horas_individual', coalesce(horas_individual, 0),
+            'horas_equipo',     coalesce(horas_equipo, 0),
+            'horas_totales',    horas_totales
+        )
+      from agregado
+     where horas_totales > 0
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Suma de horas de cada persona, en TODOS sus proyectos — portafolio, el
+# segundo (con 26) que usa el UUID fijo. valor NULL: dos totales de personas
+# distintas no se funden en un número sin decir cuál es cuál — misma regla
+# que 26 y 29. Esta SÍ es una comparación deliberada entre las dos personas
+# (a diferencia de "Aporte por integrante" en pantalla, que la prohíbe): acá
+# el propio doc lo pide, "compara entre los dos integrantes".
+BALANCE_CARGA = f"""
+    with por_persona as (
+        select persona_id, sum(horas) as horas
+          from registro_tiempo
+         group by persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '27_balance_carga',
+        'portafolio'::ambito_indicador,
+        '{PORTAFOLIO_SENTINEL}'::uuid,
+        date_trunc('week', current_date)::date,
+        null,
+        jsonb_build_object(
+            'por_persona', jsonb_agg(jsonb_build_object('persona_id', persona_id, 'horas', horas) order by horas desc)
+        )
+      from por_persona
+     having count(*) > 0
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# =============================================================================
+# Los 4 ○ — necesitaban un campo nuevo que capturar, no solo SQL. Construidos
+# el 2026-09-25 sobre la migración 017 (estimaciones_tarea, capacidad_persona,
+# tipos_proyecto, reuniones), decidida en conversación con el usuario. Con
+# esto el catálogo de 29 queda completo del lado del motor — falta que
+# alguien declare datos reales en estas 4 tablas nuevas (hoy vacías, sin
+# pantalla todavía para cargarlas).
+# =============================================================================
+
+# Compara cada estimación contra las horas reales de esa persona/proyecto
+# dentro del rango que la propia estimación declaró ([fecha_inicio,
+# fecha_fin], no la semana entera de la tarea). ratio=1.0 es estimar
+# perfecto; >1 significa que tardó más de lo dicho. Promedio por persona
+# primero, mismo criterio que 04/14: nadie pesa más por estimar más veces.
+PRECISION_ESTIMACION = """
+    with estimaciones as (
+        select e.id, t.proyecto_id, t.persona_id, e.horas_estimadas,
+               coalesce((
+                   select sum(rt.horas) from registro_tiempo rt
+                    where rt.persona_id = t.persona_id
+                      and rt.proyecto_id = t.proyecto_id
+                      and rt.fecha between e.fecha_inicio and e.fecha_fin
+               ), 0) as horas_reales
+          from estimaciones_tarea e
+          join tareas_semanales t on t.id = e.tarea_id
+    ),
+    por_persona as (
+        select proyecto_id, persona_id, avg(horas_reales / horas_estimadas) as ratio_promedio, count(*) as estimaciones
+          from estimaciones
+         group by proyecto_id, persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '03_precision_estimacion',
+        'proyecto'::ambito_indicador,
+        proyecto_id,
+        date_trunc('week', current_date)::date,
+        round(avg(ratio_promedio), 2),
+        jsonb_build_object(
+            'por_persona', jsonb_agg(jsonb_build_object(
+                'persona_id',     persona_id,
+                'ratio_promedio', round(ratio_promedio, 2),
+                'estimaciones',   estimaciones
+            ) order by persona_id)
+        )
+      from por_persona
+     group by proyecto_id
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# Horas trabajadas ESTA semana (todos los proyectos) / capacidad declarada
+# vigente. La capacidad vigente es la fila más reciente con vigente_desde <=
+# el lunes de la semana que corre — DISTINCT ON resuelve "la última antes de
+# esta fecha" sin necesitar vigente_hasta.
+CARGA_VS_CAPACIDAD = """
+    with capacidad_vigente as (
+        select distinct on (persona_id) persona_id, horas_semanales
+          from capacidad_persona
+         where vigente_desde <= date_trunc('week', current_date)::date
+         order by persona_id, vigente_desde desc
+    ),
+    horas_semana as (
+        select persona_id, sum(horas) as horas
+          from registro_tiempo
+         where fecha >= date_trunc('week', current_date)::date
+           and fecha <  date_trunc('week', current_date)::date + 7
+         group by persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '06_carga_vs_capacidad',
+        'persona'::ambito_indicador,
+        c.persona_id,
+        date_trunc('week', current_date)::date,
+        round(100.0 * coalesce(h.horas, 0) / c.horas_semanales, 1),
+        jsonb_build_object(
+            'horas_trabajadas', coalesce(h.horas, 0),
+            'capacidad_semanal', c.horas_semanales
+        )
+      from capacidad_vigente c
+      left join horas_semana h on h.persona_id = c.persona_id
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# En cuántos tipos de proyecto DISTINTOS trabajó la persona, de todo su
+# historial de horas. Proyectos sin tipo_id (todavía no clasificados en el
+# catálogo nuevo) no entran — no se puede contar un tipo que no se declaró.
+VERSATILIDAD = """
+    with tipos_por_persona as (
+        select rt.persona_id, count(distinct p.tipo_id) as tipos_distintos
+          from registro_tiempo rt
+          join proyectos p on p.id = rt.proyecto_id
+         where p.tipo_id is not null
+         group by rt.persona_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '12_versatilidad',
+        'persona'::ambito_indicador,
+        persona_id,
+        date_trunc('week', current_date)::date,
+        tipos_distintos,
+        jsonb_build_object('tipos_distintos', tipos_distintos)
+      from tipos_por_persona
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
+# % de las horas de un proyecto en equipo que se fueron en reuniones internas
+# vs. trabajo real (registro_tiempo). Solo tiene sentido en equipo —
+# reuniones.proyecto_id es obligatorio y el doc marca esto "No aplica" en
+# individual, así que un proyecto individual nunca tiene filas en reuniones
+# y no aparece acá, sin necesitar filtrar por modalidad en el SQL.
+CAPACIDAD_COORDINACION = """
+    with reuniones_proyecto as (
+        select proyecto_id, sum(horas) as horas_reuniones
+          from reuniones
+         group by proyecto_id
+    ),
+    trabajo_proyecto as (
+        select proyecto_id, sum(horas) as horas_trabajo
+          from registro_tiempo
+         group by proyecto_id
+    )
+    insert into indicador_snapshots (indicador_code, scope_type, scope_id, periodo, valor, detalle)
+    select
+        '19_capacidad_coordinacion',
+        'proyecto'::ambito_indicador,
+        r.proyecto_id,
+        date_trunc('week', current_date)::date,
+        round(100.0 * r.horas_reuniones / (r.horas_reuniones + coalesce(t.horas_trabajo, 0)), 1),
+        jsonb_build_object(
+            'horas_reuniones', r.horas_reuniones,
+            'horas_trabajo',   coalesce(t.horas_trabajo, 0)
+        )
+      from reuniones_proyecto r
+      left join trabajo_proyecto t on t.proyecto_id = r.proyecto_id
+    on conflict (indicador_code, scope_type, scope_id, periodo)
+    do update set valor = excluded.valor, detalle = excluded.detalle, calculado_en = now()
+"""
+
 CALCULADORES: list[tuple[str, str]] = [
     ("13_commits_proyecto", COMMITS_PROYECTO),
     ("29_avance_atribuido", AVANCE_ATRIBUIDO),
@@ -647,6 +1230,22 @@ CALCULADORES: list[tuple[str, str]] = [
     ("23_autocomparacion", AUTOCOMPARACION),
     ("26_bloqueo_individual_compartido", BLOQUEO_MODALIDAD),
     ("28_intervencion_cruzada", INTERVENCION_CRUZADA),
+    ("02_ratio_facturable", RATIO_FACTURABLE),
+    ("05_dispersion", DISPERSION),
+    ("07_continuidad_foco", CONTINUIDAD_FOCO),
+    ("08_densidad_interrupciones", DENSIDAD_INTERRUPCIONES),
+    ("09_horas_por_proyecto", HORAS_PROYECTO),
+    ("10_sesiones_claude_code", SESIONES_CLAUDE_CODE),
+    ("11_perfil_especializacion", PERFIL_ESPECIALIZACION),
+    ("15_rendimiento_hito", RENDIMIENTO_HITO),
+    ("16_contribucion_ponderada", CONTRIBUCION_PONDERADA),
+    ("18_ratio_colaboradores", RATIO_COLABORADORES),
+    ("25_modo_solitario", MODO_SOLITARIO),
+    ("27_balance_carga", BALANCE_CARGA),
+    ("03_precision_estimacion", PRECISION_ESTIMACION),
+    ("06_carga_vs_capacidad", CARGA_VS_CAPACIDAD),
+    ("12_versatilidad", VERSATILIDAD),
+    ("19_capacidad_coordinacion", CAPACIDAD_COORDINACION),
 ]
 
 

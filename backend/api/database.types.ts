@@ -167,6 +167,38 @@ export type Database = {
           },
         ]
       }
+      capacidad_persona: {
+        Row: {
+          creado_en: string
+          horas_semanales: number
+          id: string
+          persona_id: string
+          vigente_desde: string
+        }
+        Insert: {
+          creado_en?: string
+          horas_semanales: number
+          id?: string
+          persona_id: string
+          vigente_desde?: string
+        }
+        Update: {
+          creado_en?: string
+          horas_semanales?: number
+          id?: string
+          persona_id?: string
+          vigente_desde?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capacidad_persona_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_items: {
         Row: {
           completado: boolean
@@ -423,6 +455,51 @@ export type Database = {
             columns: ["proyecto_id"]
             isOneToOne: false
             referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estimaciones_tarea: {
+        Row: {
+          creado_en: string
+          creado_por: string | null
+          fecha_fin: string
+          fecha_inicio: string
+          horas_estimadas: number
+          id: string
+          tarea_id: string
+        }
+        Insert: {
+          creado_en?: string
+          creado_por?: string | null
+          fecha_fin: string
+          fecha_inicio: string
+          horas_estimadas: number
+          id?: string
+          tarea_id: string
+        }
+        Update: {
+          creado_en?: string
+          creado_por?: string | null
+          fecha_fin?: string
+          fecha_inicio?: string
+          horas_estimadas?: number
+          id?: string
+          tarea_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estimaciones_tarea_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimaciones_tarea_tarea_id_fkey"
+            columns: ["tarea_id"]
+            isOneToOne: false
+            referencedRelation: "tareas_semanales"
             referencedColumns: ["id"]
           },
         ]
@@ -956,6 +1033,7 @@ export type Database = {
           nombre: string
           prioridad: number | null
           tipo: string | null
+          tipo_id: string | null
         }
         Insert: {
           alcance_congelado_en?: string | null
@@ -975,6 +1053,7 @@ export type Database = {
           nombre: string
           prioridad?: number | null
           tipo?: string | null
+          tipo_id?: string | null
         }
         Update: {
           alcance_congelado_en?: string | null
@@ -994,6 +1073,7 @@ export type Database = {
           nombre?: string
           prioridad?: number | null
           tipo?: string | null
+          tipo_id?: string | null
         }
         Relationships: [
           {
@@ -1015,6 +1095,13 @@ export type Database = {
             columns: ["encargado_id"]
             isOneToOne: false
             referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proyectos_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_proyecto"
             referencedColumns: ["id"]
           },
         ]
@@ -1225,6 +1312,51 @@ export type Database = {
           },
         ]
       }
+      reuniones: {
+        Row: {
+          creado_en: string
+          descripcion: string | null
+          fecha: string
+          horas: number
+          id: string
+          persona_id: string
+          proyecto_id: string
+        }
+        Insert: {
+          creado_en?: string
+          descripcion?: string | null
+          fecha: string
+          horas: number
+          id?: string
+          persona_id: string
+          proyecto_id: string
+        }
+        Update: {
+          creado_en?: string
+          descripcion?: string | null
+          fecha?: string
+          horas?: number
+          id?: string
+          persona_id?: string
+          proyecto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reuniones_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reuniones_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles_proyecto: {
         Row: {
           descripcion: string | null
@@ -1396,6 +1528,21 @@ export type Database = {
           },
         ]
       }
+      tipos_proyecto: {
+        Row: {
+          id: string
+          nombre: string
+        }
+        Insert: {
+          id?: string
+          nombre: string
+        }
+        Update: {
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
       trazas_agente: {
         Row: {
           agent_id: string | null
@@ -1552,6 +1699,7 @@ export type Database = {
           nombre: string
           prioridad: number | null
           tipo: string | null
+          tipo_id: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1593,6 +1741,7 @@ export type Database = {
           nombre: string
           prioridad: number | null
           tipo: string | null
+          tipo_id: string | null
         }
         SetofOptions: {
           from: "*"

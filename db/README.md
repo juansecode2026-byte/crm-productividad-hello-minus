@@ -33,7 +33,8 @@ anterior ya corrió.
 | 16 | `migrations/014_tareas_completadas.sql` | `completado` + `completado_en` en `tareas_semanales`, con constraint de coherencia. Le da fuente a los indicadores #01 y #29. Aplicada 2026-09-23. |
 | 17 | `migrations/015_sembrar_catalogo_indicadores.sql` | Siembra los 29 indicadores y su aplicabilidad por modalidad (Grupos A/B/C). Sin `plazo` y sin fila `equipo` para los 9 nuevos: el doc no los decide. Aplicada 2026-09-23. |
 | 18 | `migrations/016_fecha_evidencia.sql` | `evidencia_archivo`, `evidencia_fecha` y `evidencia_fecha_origen` en `checklist_items`: cuándo se hizo lo que el agente da por hecho, y qué tan confiable es esa fecha. Aplicada 2026-09-24. |
-| 19+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
+| 19 | `migrations/017_captura_indicadores_o.sql` | 4 tablas nuevas (`estimaciones_tarea`, `capacidad_persona`, `tipos_proyecto` + `proyectos.tipo_id`, `reuniones`) para los 4 indicadores ○ que no tenían campo que los respaldara. `reuniones` es la única captura manual de tiempo de todo el sistema — `registro_tiempo` sigue 100% inferido. Aplicada 2026-09-25. |
+| 20+ | `migrations/NNN_*.sql` | Cambios incrementales, en orden cronológico. |
 
 **El paso 2 no es opcional.** El paso 1 habilita RLS sin crear políticas, y en
 Postgres eso significa denegar todo: hasta que corran las políticas, la base

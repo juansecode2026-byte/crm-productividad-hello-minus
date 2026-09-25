@@ -7,6 +7,18 @@ export async function listarPersonasActivas(): Promise<Pick<Persona, 'id' | 'nom
   return data;
 }
 
+// Para la página Equipo: además del nombre, necesita el rol para mostrarlo y
+// el id para pedir la capacidad de cada quien.
+export async function listarPersonasEquipo(): Promise<Pick<Persona, 'id' | 'nombre' | 'rol'>[]> {
+  const { data, error } = await supabase
+    .from('personas')
+    .select('id, nombre, rol')
+    .eq('activo', true)
+    .order('nombre');
+  if (error) throw error;
+  return data;
+}
+
 export async function obtenerPersonaActual(): Promise<Pick<Persona, 'nombre' | 'rol'> | null> {
   const {
     data: { user },

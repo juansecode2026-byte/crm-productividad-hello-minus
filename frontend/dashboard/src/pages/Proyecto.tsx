@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { ClavesIngesta } from '../components/ClavesIngesta';
+import { EditarProyecto } from '../components/EditarProyecto';
+import { EstimacionTarea } from '../components/EstimacionTarea';
 import { PieEvidencia } from '../components/PieEvidencia';
+import { Reuniones } from '../components/Reuniones';
 import { diasEntre, fechaCorta } from '../lib/fechas';
 import { ETAPAS } from '../lib/etapas';
 import type { Bloqueo, ChecklistItem, Hito, HistorialEtapa, Proyecto as TipoProyecto } from '../lib/tipos';
@@ -71,6 +74,7 @@ export function Proyecto() {
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
   const [personas, setPersonas] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [editando, setEditando] = useState(false);
 
   async function cargarTodo() {
     setError(null);
@@ -362,7 +366,14 @@ export function Proyecto() {
         <div className={estilos.miga}>
           <Link to="/">Proyectos</Link> / {proyecto.nombre}
         </div>
-        <h1>{proyecto.nombre}</h1>
+        <div className={estilos.tituloFila}>
+          <h1>{proyecto.nombre}</h1>
+          {!editando && (
+            <button type="button" className={estilos.btnEditar} onClick={() => setEditando(true)}>
+              Editar
+            </button>
+          )}
+        </div>
         <div className={estilos.meta}>
           <span>
             <b>{proyecto.modalidad === 'equipo' ? 'Equipo' : 'Individual'}</b>
@@ -382,6 +393,17 @@ export function Proyecto() {
           )}
         </div>
       </header>
+
+      {editando && (
+        <EditarProyecto
+          proyecto={proyecto}
+          onGuardado={(actualizado) => {
+            setProyecto(actualizado);
+            setEditando(false);
+          }}
+          onCancelar={() => setEditando(false)}
+        />
+      )}
 
       {error && (
         <p className={estilos.error} role="alert">
@@ -817,6 +839,12 @@ export function Proyecto() {
                   {tarea.completado && tarea.completado_en && (
                     <div className={estilos.tareaCerrada}>terminada {fechaCorta(tarea.completado_en)}</div>
                   )}
+                  <EstimacionTarea
+                    proyectoId={proyectoId}
+                    tareaId={tarea.id}
+                    semanaInicio={tarea.semana_inicio}
+                    semanaFin={tarea.semana_fin}
+                  />
                   {tarea.areas.map((area) => {
                     const evidenciaArea = tarea.tarea_evidencia.filter((e) => e.area === area);
                     const conRastro = evidenciaArea.length > 0;
@@ -956,6 +984,8 @@ export function Proyecto() {
               )}
             </div>
           </section>
+
+          <Reuniones proyectoId={proyectoId} nombrePersona={nombrePersona} />
 
           <ClavesIngesta proyectoId={proyectoId} />
         </div>

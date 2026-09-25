@@ -19,10 +19,56 @@ export interface Proyecto {
   modalidad: 'individual' | 'equipo';
   etapa_actual: number;
   encargado_id: string | null;
+  // tipo_id (migración 017, indicador #12) — separado del viejo `tipo` de
+  // texto libre, que no se lee acá porque nunca se sembró con disciplina.
+  tipo_id: string | null;
   prioridad: number | null;
   fecha_inicio: string | null;
   fecha_objetivo: string | null;
+  fecha_limite: string | null;
+  horas_estimadas: number | null;
   alcance_congelado_en: string | null;
+}
+
+export interface TipoProyecto {
+  id: string;
+  nombre: string;
+}
+
+// Historial de capacidad de una persona (migración 017, indicador #06). Sin
+// `vigente_hasta`: la fila con `vigente_desde` más reciente y <= la fecha en
+// cuestión es la que aplica — dos filas nunca pueden contradecirse sobre
+// cuándo terminó una vigencia.
+export interface CapacidadPersona {
+  id: string;
+  persona_id: string;
+  horas_semanales: number;
+  vigente_desde: string;
+  creado_en: string;
+}
+
+// Migración 017, indicador #03. Sin edición ni borrado (ver estimaciones.ts):
+// una estimación corregida es una fila nueva, no la vieja reescrita.
+export interface EstimacionTarea {
+  id: string;
+  tarea_id: string;
+  horas_estimadas: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  creado_por: string | null;
+  creado_en: string;
+}
+
+// Migración 017, indicador #19 — la única captura manual de tiempo del
+// sistema. `registro_tiempo` sigue 100% inferido (Fase 04).
+export interface Reunion {
+  id: string;
+  persona_id: string;
+  proyecto_id: string;
+  fecha: string;
+  horas: number;
+  descripcion: string | null;
+  creado_en: string;
 }
 
 export interface HistorialEtapa {

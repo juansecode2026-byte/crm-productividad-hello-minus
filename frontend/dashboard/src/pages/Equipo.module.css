@@ -1,0 +1,139 @@
+.cabecera {
+  padding: 16px 16px 0;
+}
+.cabecera h1 {
+  font-size: 19px;
+  margin: 4px 0 6px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.subtitulo {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.55;
+  margin: 0 0 16px;
+  max-width: 70ch;
+}
+.error {
+  background: var(--error-tenue);
+  color: var(--error);
+  border-radius: var(--radio-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  margin: 0 16px 16px;
+}
+.vacio {
+  padding: var(--space-3);
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+
+.lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+  padding: 0 16px 32px;
+}
+.tarjeta {
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  padding: 14px;
+}
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.encabezado h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+}
+.rol {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+.capacidadActual {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.horas {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--acento);
+}
+.vigente {
+  font-size: 10px;
+  color: var(--ink-3);
+}
+.sinDeclarar {
+  font-size: 11.5px;
+  color: var(--dormido);
+}
+
+.historial {
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.historial summary {
+  cursor: pointer;
+  color: var(--acento);
+}
+.historial ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.historial li {
+  padding: 3px 0;
+  border-top: 1px solid var(--linea);
+}
+
+.form {
+  display: flex;
+  gap: 6px;
+  border-top: 1px solid var(--linea);
+  padding-top: 10px;
+}
+.form input {
+  font: inherit;
+  font-size: 12px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-sm);
+  padding: 6px 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.form input:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+.form button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--acento);
+  color: var(--acento-ink);
+  border: none;
+  border-radius: var(--radio-sm);
+  padding: 6px 12px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

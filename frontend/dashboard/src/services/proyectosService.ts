@@ -2,14 +2,11 @@ import { supabase } from '../lib/supabaseClient';
 import type { HistorialEtapa, Proyecto } from '../lib/tipos';
 import { peticionApi } from './api';
 
+const columnasProyecto =
+  'id, nombre, descripcion, estado, modalidad, etapa_actual, encargado_id, tipo_id, prioridad, fecha_inicio, fecha_objetivo, fecha_limite, horas_estimadas, alcance_congelado_en';
+
 export async function obtenerProyecto(id: string): Promise<Proyecto | null> {
-  const { data, error } = await supabase
-    .from('proyectos')
-    .select(
-      'id, nombre, descripcion, estado, modalidad, etapa_actual, encargado_id, prioridad, fecha_inicio, fecha_objetivo, alcance_congelado_en',
-    )
-    .eq('id', id)
-    .maybeSingle();
+  const { data, error } = await supabase.from('proyectos').select(columnasProyecto).eq('id', id).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -31,9 +28,7 @@ export async function listarProyectos(): Promise<Proyecto[]> {
   // Lectura directa a Supabase: RLS decide qué proyectos ve cada quien.
   const { data, error } = await supabase
     .from('proyectos')
-    .select(
-      'id, nombre, descripcion, estado, modalidad, etapa_actual, encargado_id, prioridad, fecha_inicio, fecha_objetivo, alcance_congelado_en',
-    )
+    .select(columnasProyecto)
     .order('creado_en', { ascending: false });
   if (error) throw error;
   return data;
@@ -48,4 +43,19 @@ export interface DatosNuevoProyecto {
 
 export function crearProyecto(datos: DatosNuevoProyecto): Promise<Proyecto> {
   return peticionApi<Proyecto>('POST', '/proyectos', datos);
+}
+
+export interface DatosEditarProyecto {
+  nombre?: string;
+  descripcion?: string | null;
+  tipo_id?: string | null;
+  prioridad?: number | null;
+  estado?: 'activo' | 'pausado' | 'archivado';
+  fecha_objetivo?: string | null;
+  fecha_limite?: string | null;
+  horas_estimadas?: number | null;
+}
+
+export function actualizarProyecto(id: string, cambios: DatosEditarProyecto): Promise<Proyecto> {
+  return peticionApi<Proyecto>('PATCH', `/proyectos/${id}`, cambios);
 }

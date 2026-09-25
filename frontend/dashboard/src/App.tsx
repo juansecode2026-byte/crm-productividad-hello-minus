@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
 import { AgenteDetalle } from './pages/AgenteDetalle';
+import { Equipo } from './pages/Equipo';
 import { Indicadores } from './pages/Indicadores';
 import { IngenieriaAgentica } from './pages/IngenieriaAgentica';
 import { Login } from './pages/Login';
@@ -38,6 +39,7 @@ export function App() {
         <Route path="/agentes" element={<IngenieriaAgentica />} />
         <Route path="/agentes/:id" element={<AgenteDetalle />} />
         <Route path="/indicadores" element={<Indicadores />} />
+        <Route path="/equipo" element={<Equipo />} />
       </Routes>
     </BrowserRouter>
   );

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Database } from '../database.types.js';
 import { contexto } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp, errorSinFila, validar } from '../middleware/errores.js';
+import { estimaciones } from './estimaciones.js';
 
 // areas queda en texto libre a propósito: cada proyecto de Hello Minus tiene
 // su propia estructura de carpetas y por lo tanto su propio vocabulario de
@@ -145,3 +146,5 @@ tareas.delete('/:tareaId', async (req, res) => {
 
   res.status(204).end();
 });
+
+tareas.use('/:tareaId/estimaciones', estimaciones);

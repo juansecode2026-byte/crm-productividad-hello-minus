@@ -404,10 +404,15 @@ una con su propia razón de forma:
 | `12_versatilidad` | `tipos_proyecto` + `proyectos.tipo_id` | mismo patrón que `canales_venta`: tabla chica, no enum. Sembrada con 7 tipos (CRM, Chatbot, Dashboard, Integración, Sitio web, Automatización, Otro). `proyectos.tipo` (texto libre) no se migra — nunca se sembró con disciplina |
 | `19_capacidad_coordinacion` | `reuniones` | **la única captura manual de tiempo en todo el sistema** — `registro_tiempo` sigue 100% inferido (Fase 04, sin tocar). `proyecto_id` obligatorio: el doc marca esto "No aplica" en individual, así que ese caso nunca tiene filas, sin necesitar filtrar por modalidad en el SQL |
 
-Ninguna de las 4 tablas nuevas tiene pantalla todavía para cargar datos —
-existen y tienen RLS, pero hoy solo se llenarían a mano (SQL directo) o
-esperando que alguien construya el formulario. Probadas en una transacción
-revertida sembrando las 4 a la vez; sin datos reales todavía.
+Probadas en una transacción revertida sembrando las 4 a la vez; sin datos
+reales todavía. **Las 4 ya tienen pantalla** (2026-09-25, ver "Pendiente /
+en decisión" más abajo): rutas nuevas en el backend
+(`routes/estimaciones.ts`, `routes/capacidad.ts`, `routes/reuniones.ts`, y
+`tipo_id` sumado al `PATCH /proyectos/:id` que ya existía) más su UI. Ninguna
+tiene edición ni borrado más allá de lo que la propia RLS permite —
+`estimaciones_tarea` y `capacidad_persona` son historial de solo-insert por
+diseño (Fase 07 arriba); `reuniones` sí tiene DELETE, igual que bloqueos: si
+se registró mal, se borra y se vuelve a crear, no hay PATCH de texto.
 
 ### Telemetría propia (2026-09-25)
 
@@ -732,7 +737,16 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
   (`indicador_catalogo` e `indicador_aplicabilidad` ya se sembraron — migración 015.)
 - **Motor de indicadores: los 29 de 29 están construidos y probados**,
   disparador (`calcular-indicadores.yml`) pusheado y con `DATABASE_URL` ya
-  configurado — solo falta la próxima corrida real de `workflow_run` tras el
-  Clasificador para verlo andar solo. Las 4 tablas nuevas de los indicadores
-  ○ (migración 017) no tienen pantalla para cargar datos todavía — hoy solo
-  se llenarían a mano. Ver la sección Fase 07.
+  configurado — confirmado disparándose solo el 2026-09-25 (salió `skipped`
+  porque el Clasificador de ese día falló por un error de conexión
+  transitorio, no un bug: el `if: conclusion == 'success'` hizo lo que debía).
+  Falta verlo correr de punta a punta un día que el Clasificador sí termine
+  bien.
+- **Las 4 tablas de los indicadores ○ (migración 017) ya tienen pantalla**
+  (2026-09-25): `estimaciones_tarea` desde cada tarea semanal
+  (`components/EstimacionTarea.tsx`), `reuniones` como sección propia del
+  proyecto (`components/Reuniones.tsx`), `tipo_id` desde "Editar" en la
+  cabecera del proyecto (`components/EditarProyecto.tsx`), y
+  `capacidad_persona` desde la página nueva `/equipo`
+  (`pages/Equipo.tsx`) — salió de "pronto" en `AppShell.tsx`. Las cuatro
+  siguen sin datos reales todavía: recién se puede empezar a declarar.

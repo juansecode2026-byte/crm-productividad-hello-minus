@@ -18,9 +18,9 @@ function iniciales(nombre: string): string {
 
 // Todavía sin construir: quedan visibles porque anticipan la navegación real
 // del CRM, pero marcadas "pronto" en vez de simular que funcionan.
-// "Ingeniería Agéntica" e "Indicadores" salieron de esta lista el 2026-09-23:
-// ya son rutas reales.
-const seccionesPendientes = ['Equipo', 'Actividad', 'Ajustes'];
+// "Ingeniería Agéntica" e "Indicadores" salieron de esta lista el 2026-09-23,
+// "Equipo" el 2026-09-25 (capacidad_persona, migración 017): ya son rutas reales.
+const seccionesPendientes = ['Actividad', 'Ajustes'];
 
 type EstadoPersona = { nombre: string; rol: string } | 'cargando' | 'error';
 
@@ -31,6 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const enProyectos = ubicacion.pathname === '/' || ubicacion.pathname.startsWith('/proyectos');
   const enAgentes = ubicacion.pathname.startsWith('/agentes');
   const enIndicadores = ubicacion.pathname.startsWith('/indicadores');
+  const enEquipo = ubicacion.pathname.startsWith('/equipo');
 
   useEffect(() => {
     obtenerPersonaActual()
@@ -83,6 +84,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-current={enIndicadores ? 'page' : undefined}
           >
             Indicadores
+          </Link>
+          <Link
+            to="/equipo"
+            className={`${estilos.navItem} ${enEquipo ? estilos.navItemActivo : ''}`}
+            aria-current={enEquipo ? 'page' : undefined}
+          >
+            Equipo
           </Link>
           {seccionesPendientes.map((seccion) => (
             <span key={seccion} className={`${estilos.navItem} ${estilos.navItemPronto}`}>

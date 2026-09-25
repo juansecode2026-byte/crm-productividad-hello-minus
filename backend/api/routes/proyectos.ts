@@ -7,6 +7,7 @@ import { checklist } from './checklist.js';
 import { claves } from './claves.js';
 import { hitos } from './hitos.js';
 import { miembros } from './miembros.js';
+import { reuniones } from './reuniones.js';
 import { tareas } from './tareas.js';
 
 const fecha = z.iso.date();
@@ -19,6 +20,7 @@ const camposEditables = {
   cliente_id: z.uuid().nullable(),
   encargado_id: z.uuid().nullable(),
   tipo: z.string().trim().max(100).nullable(),
+  tipo_id: z.uuid().nullable(),
   prioridad: z.number().int().min(1).max(5).nullable(),
   estado: z.enum(['activo', 'pausado', 'archivado']),
   modalidad: z.enum(['individual', 'equipo']),
@@ -28,9 +30,12 @@ const camposEditables = {
   horas_estimadas: z.number().positive().max(999999.99).nullable(),
 };
 
+// tipo_id queda afuera de la creación: crear_proyecto no tiene un p_tipo_id
+// (el tipo se asigna después, editando) — omitirlo evita que el campo se
+// valide y se descarte en silencio.
 const esquemaCrear = z
   .strictObject(camposEditables)
-  .omit({ estado: true })
+  .omit({ estado: true, tipo_id: true })
   .partial()
   .extend({
     nombre: camposEditables.nombre,
@@ -148,3 +153,4 @@ proyectos.use('/:proyectoId/tareas', tareas);
 proyectos.use('/:proyectoId/bloqueos', bloqueos);
 proyectos.use('/:proyectoId/checklist', checklist);
 proyectos.use('/:proyectoId/hitos', hitos);
+proyectos.use('/:proyectoId/reuniones', reuniones);

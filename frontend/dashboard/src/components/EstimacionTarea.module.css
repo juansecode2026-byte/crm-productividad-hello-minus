@@ -1,0 +1,76 @@
+.envoltura {
+  margin-top: 6px;
+}
+.lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--linea-fuerte);
+  color: var(--ink-3);
+}
+.error {
+  color: var(--error);
+  font-size: 10.5px;
+  margin: 0 0 4px;
+}
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.form input {
+  font: inherit;
+  font-size: 11px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-sm);
+  padding: 4px 6px;
+  min-width: 0;
+  flex: 1 1 90px;
+}
+.form input:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+.form button {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radio-sm);
+  padding: 4px 8px;
+  flex: 0 0 auto;
+}
+.form button[type='submit'] {
+  background: var(--acento);
+  color: var(--acento-ink);
+  border: none;
+}
+.form button[type='submit']:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btnFantasma {
+  background: transparent;
+  color: var(--ink-3);
+  border: 1px solid var(--linea-fuerte);
+}
+.btnEstimar {
+  font: inherit;
+  font-size: 10.5px;
+  color: var(--acento);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}

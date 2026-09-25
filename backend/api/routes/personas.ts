@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { contexto } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp, errorSinFila, validar } from '../middleware/errores.js';
+import { capacidad } from './capacidad.js';
 
 // El trigger de vinculación con Auth compara emails en minúsculas; guardarlos
 // así evita duplicados que solo difieren en mayúsculas.
@@ -82,3 +83,5 @@ personas.patch('/:id', async (req, res) => {
 
   res.json(data);
 });
+
+personas.use('/:personaId/capacidad', capacidad);

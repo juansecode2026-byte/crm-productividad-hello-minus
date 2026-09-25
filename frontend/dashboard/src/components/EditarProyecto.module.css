@@ -1,0 +1,88 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  margin: 0 16px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+}
+.error {
+  background: var(--error-tenue);
+  color: var(--error);
+  border-radius: var(--radio-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  margin: 0;
+}
+.fila {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fila label {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.campoAncho {
+  flex: 1 1 100%;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+input,
+select,
+textarea {
+  font: inherit;
+  font-size: 12.5px;
+  text-transform: none;
+  letter-spacing: normal;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-sm);
+  padding: 6px 8px;
+}
+textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+.acciones {
+  display: flex;
+  gap: 8px;
+}
+.acciones button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radio-sm);
+  padding: 7px 14px;
+}
+.acciones button[type='submit'] {
+  background: var(--acento);
+  color: var(--acento-ink);
+  border: none;
+}
+.acciones button[type='submit']:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btnFantasma {
+  background: transparent;
+  color: var(--ink-3);
+  border: 1px solid var(--linea-fuerte);
+}

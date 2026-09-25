@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { ClavesIngesta } from '../components/ClavesIngesta';
 import { PieEvidencia } from '../components/PieEvidencia';
 import { diasEntre, fechaCorta } from '../lib/fechas';
 import { ETAPAS } from '../lib/etapas';
@@ -955,6 +956,8 @@ export function Proyecto() {
               )}
             </div>
           </section>
+
+          <ClavesIngesta proyectoId={proyectoId} />
         </div>
       </div>
     </AppShell>

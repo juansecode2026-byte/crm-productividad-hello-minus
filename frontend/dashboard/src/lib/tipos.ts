@@ -112,6 +112,18 @@ export interface Bloqueo {
   resuelto_por: string | null;
 }
 
+// La clave en claro nunca vive acá: este tipo es lo que devuelve GET/revocar.
+// POST /proyectos/:id/claves devuelve esto MÁS `clave` (una sola vez, ver
+// clavesService.ts).
+export interface ClaveIngesta {
+  id: string;
+  nombre: string;
+  prefijo: string;
+  activa: boolean;
+  creada_en: string;
+  ultimo_uso_en: string | null;
+}
+
 export interface RepoCandidato {
   owner: string;
   repo: string;

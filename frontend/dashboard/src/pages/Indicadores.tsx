@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import {
   CATEGORIAS,
@@ -11,7 +12,7 @@ import {
   type Grupo,
   type IndicadorCatalogo,
 } from '../lib/indicadores';
-import { listarCatalogo } from '../services/indicadoresService';
+import { listarCatalogo, listarIndicadoresConResultados } from '../services/indicadoresService';
 import estilos from './Indicadores.module.css';
 
 const GLIFO_FUENTE: Record<Fuente, string> = { respaldo: '✓', telemetria: '◐', sin_campo: '○' };
@@ -26,13 +27,15 @@ function Modalidad({ estado }: { estado: EstadoModalidad }) {
 export function Indicadores() {
   const [indicadores, setIndicadores] = useState<IndicadorCatalogo[] | null>(null);
   const [aplicabilidad, setAplicabilidad] = useState<Aplicabilidad[]>([]);
+  const [conResultados, setConResultados] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    listarCatalogo()
-      .then(({ indicadores: ind, aplicabilidad: apl }) => {
+    Promise.all([listarCatalogo(), listarIndicadoresConResultados()])
+      .then(([{ indicadores: ind, aplicabilidad: apl }, resultados]) => {
         setIndicadores(ind);
         setAplicabilidad(apl);
+        setConResultados(resultados);
       })
       .catch((excepcion) => setError(excepcion instanceof Error ? excepcion.message : 'No se pudo cargar el catálogo'));
   }, []);
@@ -62,8 +65,8 @@ export function Indicadores() {
         <div className={estilos.miga}>Indicadores</div>
         <h1>Catálogo de indicadores</h1>
         <p className={estilos.desc}>
-          Qué se mide y cómo se lee cada indicador — la definición, no el número. Los valores
-          calculados viven en cada proyecto.
+          Qué se mide y cómo se lee cada indicador. El número calculado de cada uno está en
+          "Ver resultados", al final de su fila.
         </p>
       </header>
 
@@ -138,6 +141,7 @@ export function Indicadores() {
                           <th>Individual</th>
                           <th>Equipo</th>
                           <th>Fuente</th>
+                          <th>Resultados</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -172,6 +176,19 @@ export function Indicadores() {
                                 ) : (
                                   <span className={estilos.tabla}>sin clasificar</span>
                                 )}
+                              </td>
+                              <td>
+                                <Link
+                                  to={`/indicadores/${ind.indicador_code}`}
+                                  className={`${estilos.verResultados} ${
+                                    conResultados.has(ind.indicador_code) ? estilos.conDatos : ''
+                                  }`}
+                                >
+                                  {conResultados.has(ind.indicador_code) && (
+                                    <span className={estilos.puntoDatos} aria-hidden="true" />
+                                  )}
+                                  Ver resultados →
+                                </Link>
                               </td>
                             </tr>
                           );

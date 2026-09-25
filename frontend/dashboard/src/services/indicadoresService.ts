@@ -11,6 +11,79 @@ export async function listarCatalogo(): Promise<{ indicadores: IndicadorCatalogo
   return { indicadores: catalogo.data, aplicabilidad: aplicabilidad.data };
 }
 
+// Qué códigos ya tienen al menos un snapshot real — el catálogo lo usa para
+// marcar "Ver resultados" de otro color. Es una señal temporal: hoy casi todo
+// da vacío porque el Motor recién corrió una semana; cuando haya más datos
+// (reales o de prueba para ver la pantalla poblada) esto deja de ser noticia.
+export async function listarIndicadoresConResultados(): Promise<Set<string>> {
+  const { data, error } = await supabase.from('indicador_snapshots').select('indicador_code');
+  if (error) throw error;
+  return new Set(data.map((fila) => fila.indicador_code));
+}
+
+export async function obtenerIndicador(
+  codigo: string,
+): Promise<{ indicador: IndicadorCatalogo; aplicabilidad: Aplicabilidad[] } | null> {
+  const [catalogo, aplicabilidad] = await Promise.all([
+    supabase
+      .from('indicador_catalogo')
+      .select('indicador_code, nombre, categoria, descripcion')
+      .eq('indicador_code', codigo)
+      .maybeSingle(),
+    supabase
+      .from('indicador_aplicabilidad')
+      .select('indicador_code, modalidad, aplica, sustituye_comparacion')
+      .eq('indicador_code', codigo),
+  ]);
+  if (catalogo.error) throw catalogo.error;
+  if (aplicabilidad.error) throw aplicabilidad.error;
+  if (!catalogo.data) return null;
+  return { indicador: catalogo.data, aplicabilidad: aplicabilidad.data };
+}
+
+export type ScopeIndicador = 'proyecto' | 'persona' | 'portafolio';
+
+export interface Snapshot {
+  scope_type: ScopeIndicador;
+  scope_id: string | null;
+  periodo: string;
+  valor: number | null;
+  detalle: unknown;
+  calculado_en: string;
+}
+
+// Todos los snapshots del indicador, de todos los alcances, del más viejo al
+// más nuevo. La página los agrupa por alcance; acá no se decide nada.
+export async function listarSnapshots(codigo: string): Promise<Snapshot[]> {
+  const { data, error } = await supabase
+    .from('indicador_snapshots')
+    .select('scope_type, scope_id, periodo, valor, detalle, calculado_en')
+    .eq('indicador_code', codigo)
+    .order('periodo', { ascending: true });
+  if (error) throw error;
+  // numeric llega como string desde PostgREST cuando tiene decimales.
+  return data.map((fila) => ({
+    ...fila,
+    scope_type: fila.scope_type as ScopeIndicador,
+    valor: fila.valor === null ? null : Number(fila.valor),
+  }));
+}
+
+// Nombres para rotular alcances y el desglose por persona. Incluye personas
+// inactivas: un snapshot viejo puede nombrar a alguien que ya salió.
+export async function obtenerNombres(): Promise<{ proyectos: Map<string, string>; personas: Map<string, string> }> {
+  const [proyectos, personas] = await Promise.all([
+    supabase.from('proyectos').select('id, nombre'),
+    supabase.from('personas').select('id, nombre'),
+  ]);
+  if (proyectos.error) throw proyectos.error;
+  if (personas.error) throw personas.error;
+  return {
+    proyectos: new Map(proyectos.data.map((p) => [p.id, p.nombre])),
+    personas: new Map(personas.data.map((p) => [p.id, p.nombre])),
+  };
+}
+
 export interface AporteIntegrante {
   persona_id: string;
   asignadas: number;

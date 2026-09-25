@@ -256,3 +256,35 @@
   margin-top: 3px;
   line-height: 1.4;
 }
+
+.verResultados {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--acento);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.verResultados:hover {
+  text-decoration: underline;
+}
+.verResultados:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+/* Señal temporal (2026-09-25): mientras casi todo el catálogo esté vacío de
+   verdad, esto distingue "ya tiene snapshot real" de "todavía no corrió" sin
+   tener que entrar a cada uno. Cuando haya datos (reales o de prueba) en la
+   mayoría de los 29, este punto deja de aportar y se puede sacar. */
+.conDatos {
+  color: var(--ok);
+}
+.puntoDatos {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  flex: 0 0 auto;
+}

@@ -214,6 +214,20 @@ Minus, solo dejó de ser neutra-sin-decidir. Tokens en `src/lib/tokens.css`.
   fila; ver la sección Fase 07 para qué significa cada columna. Los valores
   calculados no viven acá: viven en cada proyecto.
 
+- **Resultados por indicador (`/indicadores/:codigo`)**, agregada el 2026-09-25:
+  cada fila del catálogo tiene "Ver resultados →". La página lee todos los
+  snapshots del indicador, los agrupa por alcance (chips: empresa / proyecto /
+  persona) y elige **una sola forma** según el dato real de ESE alcance
+  (`formaDe` en `pages/IndicadorDetalle.tsx`): `valor` NULL → solo el detalle
+  cualitativo; 2+ semanas → serie de barras; 1 semana → número único. Nada de
+  gráficos decorativos donde el dato no los pide, y el % de cambio va en color
+  neutro (subir no siempre es bueno). El `detalle` jsonb lo dibuja un solo
+  componente genérico (`components/DetalleSnapshot.tsx`) que entiende las tres
+  formas que escribe el Motor — listas (`por_persona`, `por_area`), mapa por
+  modalidad (#26) y campos sueltos —, así un calculador nuevo no obliga a tocar
+  la pantalla. Proyecciones: descartadas a propósito por ahora (no hay
+  historial para proyectar).
+
 - **"Aporte por integrante"** en `Proyecto.tsx` (indicador #29): lee el último
   snapshot, no calcula en vivo — marcar una tarea terminada no mueve el número
   hasta que corre el motor, y la pantalla lo dice. **Todas las barras van en
@@ -483,9 +497,29 @@ la GitHub App apunta a ella.
   commit no trae usuario, por email. Sin coincidencia queda `persona_id` NULL.
 
 Lo que este receptor **no** hace todavía: archivos tocados de un PR (el
-payload no los trae; hace falta la API con credenciales de la App), backfill
-del historial, `area_inferida`/`tipo_inferido` (Clasificador nocturno), y
-seguir un repo renombrado (se busca por nombre, no por id).
+payload no los trae; hace falta la API con credenciales de la App),
+`area_inferida`/`tipo_inferido` (Clasificador nocturno), y seguir un repo
+renombrado (se busca por nombre, no por id).
+
+**Backfill del historial** (`scripts/backfill_commits.py`, 2026-09-25):
+herramienta manual, no parte de la cadena nocturna — se corre una vez por
+repo, cuando hace falta traer lo que pasó antes de vincularlo (el webhook
+solo captura desde ese momento en adelante). Mismo criterio de atribución
+que `eventos.ts` (usuario de GitHub primero, email de respaldo), y deja
+`area_inferida`/`tipo_inferido` en NULL igual que el webhook — el
+Clasificador los toma en su próxima corrida, sin distinguir "commit viejo"
+de "commit nuevo". No escribe en Supabase directo: sin `DATABASE_URL` local
+(es secreto solo de GitHub Actions) ni `SUPABASE_SERVICE_ROLE_KEY`
+configurada, el script solo habla con GitHub y deja las filas listas en un
+JSON — la inserción se hace aparte, con el conector de Supabase.
+
+Corrido por primera vez este mismo día contra este repo: 38 commits
+encontrados en GitHub desde el primer commit (28-ago), 37 insertados. Uno
+quedó afuera por un falso positivo del guardrail de SQL local (`d3f422c8`,
+el commit que agregó el propio guardrail — su mensaje describe en texto
+"DISABLE ROW LEVEL SECURITY" y el hook lo lee como si fuera SQL real dentro
+del `INSERT`, no como el contenido de un mensaje). Decisión del usuario:
+dejarlo afuera, no vale la pena tocar el guardrail por un commit histórico.
 
 ## Canal 2 — Telemetría (`backend/functions/ingesta-telemetria/`)
 

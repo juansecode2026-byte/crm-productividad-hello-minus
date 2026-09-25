@@ -66,12 +66,18 @@ def main() -> None:
     ]
 
     try:
-        veredictos = verificar_checklist(repo, items)
+        resultado = verificar_checklist(repo, items)
     except Exception as error:  # noqa: BLE001 — cualquier fallo vuelve como JSON, no como traceback
         print(json.dumps({"error": f"El agente no pudo responder: {error}"}), flush=True)
         sys.exit(1)
 
-    salida = {"veredictos": [v.model_dump() for v in veredictos]}
+    salida = {
+        "veredictos": [v.model_dump() for v in resultado.veredictos],
+        # Piloto del experimento de costo (2026-09-25): el Node que llama a
+        # esto decide qué hacer con el uso — acá solo se reporta lo que
+        # devolvió el SDK, sin calcular dólares ni tocar la base.
+        "uso": {"tokens_entrada": resultado.uso.entrada, "tokens_salida": resultado.uso.salida},
+    }
     print(json.dumps(salida, ensure_ascii=False), flush=True)
 
 

@@ -674,6 +674,24 @@ una redacción la arregla en todas partes sin re-escanear.
 apareció el segundo agente de este tipo: `sugeridorEtapa.ts` y
 `verificadorChecklist.ts` lo comparten en vez de repetir el manejo de proceso.
 
+**Piloto del experimento de costo** (`services/telemetria.ts`, 2026-09-25):
+único agente instrumentado hasta ahora, a propósito — antes de tocar los
+otros dos se quería probar el patrón con uno solo. `cliente.py` captura
+`respuesta.usage` (viene gratis en la misma respuesta del SDK, cero llamadas
+extra) y `ejecutar.py` lo suma al JSON de salida como `uso`.
+`verificadorChecklist.ts` lo reenvía con el **propio paquete**
+`hello-minus-telemetry` — este backend se reporta a sí mismo exactamente
+como lo haría cualquier otro proyecto, sin atajos. Como `trazas_agente.tokens`
+es una sola columna, cada escaneo genera **dos** filas (`node_name`
+`'tokens_entrada'` / `'tokens_salida'`), compartiendo `run_id` para poder
+volver a juntarlas — sumarlas en una sola fila hubiera perdido la diferencia
+de precio entre token de entrada y de salida, que es todo el punto del
+experimento. Clave de ingesta propia (`Backend API — trazas de agentes`,
+separada de la de Claude Code para poder revocar una sin apagar la otra) en
+`HELLO_MINUS_TELEMETRY_KEY` de `backend/api/.env`. Probado end-to-end con un
+envío manual: las dos filas llegaron con el `proyecto_id` resuelto
+correctamente por la clave, después borradas (eran de prueba).
+
 ## Base de datos
 
 Supabase, proyecto **`qutqsyokdlitflybfrus`** (`crm-productividad-hello-minus`).
@@ -694,6 +712,7 @@ Ver [.env.example](.env.example). `.env` está en `.gitignore`.
 | `GITHUB_TOKEN` | Backend, opcional. Sube el límite de la API pública de GitHub y permite leer repos privados propios en `GET /repos/candidatos`. | Personal access token, solo lectura |
 | `ANTHROPIC_API_KEY` | `backend/agent/`. El Clasificador la toma de los secretos de GitHub Actions; el Sugeridor de etapa la hereda del entorno de la API, así que para ese va **en `backend/api/.env`**. Sin ella la API arranca igual y el botón "Sugerir" responde 503. | consola de Anthropic |
 | `PYTHON_BIN` | Opcional. Qué binario de Python usa la API para lanzar al Sugeridor de etapa. Por defecto `python` en Windows, `python3` en el resto. | config |
+| `HELLO_MINUS_TELEMETRY_KEY` | `backend/api/.env`. Clave para que este backend reporte su propia telemetría de agentes con `paquetes/hello-minus-telemetry` (piloto: solo el Verificador de checklist). Sin ella, `services/telemetria.ts` queda inerte, no rompe nada. | `POST /proyectos/:id/claves` de este mismo CRM, la clave se ve una sola vez |
 
 ## Pendiente / en decisión
 

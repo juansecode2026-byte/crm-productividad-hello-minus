@@ -53,6 +53,24 @@ class RespuestaInconsistente(RuntimeError):
     """El modelo devolvió ids que no se pidieron, o se dejó alguno sin juzgar."""
 
 
+@dataclass
+class UsoTokens:
+    """Piloto del experimento de costo (2026-09-25): tokens de entrada y
+    salida de una corrida, tal como vienen en la respuesta del SDK —
+    ningún cálculo propio, ninguna llamada extra. Separados porque Opus
+    cobra distinto por cada uno; sumarlos en un solo número perdería esa
+    diferencia antes de que llegue a la base."""
+
+    entrada: int
+    salida: int
+
+
+@dataclass
+class ResultadoVerificacion:
+    veredictos: list[VeredictoItem]
+    uso: UsoTokens
+
+
 def _describir_repo(repo: RepoParaVerificar) -> str:
     lineas = [f"## Repositorio: {repo.owner}/{repo.repo}", ""]
 
@@ -115,9 +133,9 @@ def verificar_checklist(
     items: list[ItemParaVerificar],
     *,
     cliente: anthropic.Anthropic | None = None,
-) -> list[VeredictoItem]:
+) -> ResultadoVerificacion:
     if not items:
-        return []
+        return ResultadoVerificacion(veredictos=[], uso=UsoTokens(entrada=0, salida=0))
     if len(items) > MAX_ITEMS:
         raise ValueError(f"Máximo {MAX_ITEMS} ítems por escaneo, llegaron {len(items)}.")
 
@@ -144,7 +162,14 @@ def verificar_checklist(
 
     veredictos = respuesta.parsed_output.veredictos
     _validar_cobertura(items, veredictos)
-    return veredictos
+
+    # Piloto del experimento de costo: nada de esto le cuesta una llamada
+    # extra — `usage` ya viene adentro de la misma respuesta que se pidió.
+    uso = UsoTokens(
+        entrada=respuesta.usage.input_tokens,
+        salida=respuesta.usage.output_tokens,
+    )
+    return ResultadoVerificacion(veredictos=veredictos, uso=uso)
 
 
 def _validar_cobertura(pedidos: list[ItemParaVerificar], resultado: list[VeredictoItem]) -> None:

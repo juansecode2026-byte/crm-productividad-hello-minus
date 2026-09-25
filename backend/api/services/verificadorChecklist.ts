@@ -6,11 +6,13 @@
 // `completado` lo mueve una persona apretando "Confirmar" (PATCH
 // .../checklist/:itemId), que ya existía desde antes. Por eso los ítems ya confirmados ni siquiera se le
 // mandan al agente: no hay nada que pueda decir que cambie algo.
+import { randomUUID } from 'node:crypto';
 import type { ClienteSupabase } from '../middleware/autenticacion.js';
 import { desdeSupabase, ErrorHttp } from '../middleware/errores.js';
 import { correrAgente } from './agentePython.js';
 import { resolverFechaEvidencia, type FechaEvidencia } from './fechaEvidencia.js';
 import { estadisticasRepo, estructuraRepo, leerClaudeMd, ultimoCommitDeArchivo } from './github.js';
+import { registrarUsoVerificadorChecklist } from './telemetria.js';
 
 export interface ResultadoEscaneo {
   sembrados: number;
@@ -27,6 +29,13 @@ interface VeredictoAgente {
   estado: EstadoAgente;
   evidencia: string;
   archivo_evidencia?: string | null;
+}
+
+// Piloto del experimento de costo (2026-09-25): lo que devuelve ejecutar.py
+// además de los veredictos, tal como vino en la respuesta del SDK.
+interface UsoAgente {
+  tokens_entrada: number;
+  tokens_salida: number;
 }
 
 const ESTADOS_VALIDOS: readonly EstadoAgente[] = ['sin_empezar', 'en_proceso', 'hecho'];
@@ -98,7 +107,7 @@ export async function escanearChecklist(
     leerClaudeMd(owner, repo),
   ]);
 
-  const json = await correrAgente<{ veredictos?: VeredictoAgente[] }>({
+  const json = await correrAgente<{ veredictos?: VeredictoAgente[]; uso?: UsoAgente }>({
     modulo: 'verificador_checklist.ejecutar',
     contexto: `${owner}/${repo} · ${items.length} ítems`,
     // Más tiempo que el Sugeridor de etapa: son ~30 juicios en una sola
@@ -125,6 +134,16 @@ export async function escanearChecklist(
   });
 
   const veredictos = json.veredictos ?? [];
+
+  // Piloto del experimento de costo: se reporta lo que haya, sin bloquear el
+  // escaneo si la telemetría fallara — misma regla de "nunca tumba al
+  // proyecto que la usa" que ya sigue el paquete.
+  if (json.uso) {
+    registrarUsoVerificadorChecklist(randomUUID(), {
+      tokensEntrada: json.uso.tokens_entrada,
+      tokensSalida: json.uso.tokens_salida,
+    });
+  }
 
   // 5. Escribir el veredicto. Se escribe siempre, en los tres estados: un
   //    escaneo nuevo pisa al anterior, así una detección vieja que ya no se

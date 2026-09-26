@@ -25,6 +25,17 @@ jobs:
         with:
           python-version: '3.12'
 
+      # DIAGNÓSTICO TEMPORAL (2026-09-26) — se saca apenas se entienda la causa
+      # real del "Connection error" que viene fallando en este job. Prueba la
+      # red cruda, sin el SDK de Python de por medio.
+      - run: |
+          echo "--- curl -v a api.anthropic.com ---"
+          curl -v --max-time 15 https://api.anthropic.com/v1/models -H "x-api-key: test" -H "anthropic-version: 2023-06-01" || echo "curl salió con código $?"
+          echo "--- resolución DNS ---"
+          getent hosts api.anthropic.com || echo "getent falló"
+          echo "--- ruta IPv6 ---"
+          curl -6 -v --max-time 8 https://api.anthropic.com/v1/models -H "x-api-key: test" -H "anthropic-version: 2023-06-01" || echo "IPv6 falló con código $?"
+
       - run: pip install -r requirements.txt
         working-directory: backend/agent
 

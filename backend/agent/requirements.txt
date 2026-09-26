@@ -1,7 +1,14 @@
 # Dependencias del servicio Python de agentes (STACK.md, DECISIONES.md [D1]).
 # Instalar con: pip install -r backend/agent/requirements.txt
 
-anthropic>=0.121
+# Fijada a 1.7.0 (2026-09-26): la 1.8.0 tiene una regresión real que rompe
+# toda petición ("Connection error" al primer intento, sin llegar a la API —
+# confirmado con status.claude.com en verde y con otro proyecto que pegó con
+# el mismo bug: anthropics/anthropic-sdk-python release v1.8.0,
+# UKGovernmentBEIS/inspect_ai#5517). Sin techo, `pip install` siempre agarra
+# la última — así fue como se instaló sola la rota. Revisar este pin cuando
+# salga una versión más nueva que la corrija.
+anthropic==1.7.0
 pydantic>=2.0
 
 # Para escribir de vuelta a Supabase (leer commits sin clasificar, guardar

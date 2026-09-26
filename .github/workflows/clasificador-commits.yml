@@ -25,18 +25,6 @@ jobs:
         with:
           python-version: '3.12'
 
-      # api.anthropic.com tiene registro AAAA, y los runners ubuntu-latest
-      # de GitHub Actions tienen una ruta IPv6 rota hacia varios hosts
-      # externos (issues conocidos: actions/runner-images#668 y #10061,
-      # anthropics/claude-code#20240) — el cliente intenta conectar por
-      # IPv6, recibe "connection reset" en segundos, y eso es exactamente
-      # el "Connection error" que venía fallando acá, no un problema de la
-      # API (confirmado en status.claude.com: sin incidentes). Deshabilitar
-      # IPv6 en el runner fuerza la resolución a IPv4, que sí funciona.
-      - run: |
-          sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
-          sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
-
       - run: pip install -r requirements.txt
         working-directory: backend/agent
 

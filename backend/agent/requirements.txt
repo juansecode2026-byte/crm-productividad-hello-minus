@@ -1,18 +1,7 @@
 # Dependencias del servicio Python de agentes (STACK.md, DECISIONES.md [D1]).
 # Instalar con: pip install -r backend/agent/requirements.txt
 
-# Las tres fijas a la última combinación que se probó funcionando de
-# verdad (corrida real del 22-sep) — no solo anthropic, también su
-# transporte propio. anthropic 1.7.0 con httpx2/httpcore2 2.13.1 SIGUE
-# fallando ("Connection error" en la primera petición, sin llegar a la
-# API — confirmado con status.claude.com en verde), así que la regresión
-# está en httpx2/httpcore2 2.13.1, no en anthropic 1.8.0 como se pensó al
-# principio. Sin techo, `pip install` agarra lo último de las tres — así
-# fue como se instaló sola la combinación rota. Revisar este pin cuando
-# haya una versión más nueva que corrija el problema.
-anthropic==1.7.0
-httpx2==2.13.0
-httpcore2==2.13.0
+anthropic>=0.121
 pydantic>=2.0
 
 # Para escribir de vuelta a Supabase (leer commits sin clasificar, guardar

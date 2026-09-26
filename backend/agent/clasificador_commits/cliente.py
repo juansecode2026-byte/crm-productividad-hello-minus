@@ -8,6 +8,7 @@ menos. `area_inferida` NO sale de acá: eso lo calcula
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -51,7 +52,15 @@ def clasificar_commits(
     if len(commits) > MAX_LOTE:
         raise ValueError(f"Máximo {MAX_LOTE} commits por lote, llegaron {len(commits)}. Dividilo antes de llamar.")
 
-    cliente = cliente or anthropic.Anthropic()
+    # .strip(): un secreto de GitHub Actions con un salto de línea de más al
+    # pegarlo produce una cabecera HTTP ilegal (httpcore2.LocalProtocolError,
+    # "Illegal header value b'***\n'") que httpx2 rechaza antes de llegar a la
+    # red — se ve idéntico a un problema de conexión, encontrado el
+    # 2026-09-26 con un traceback completo. .strip() no le hace nada a una
+    # clave bien pegada, pero blinda contra esa clase de error entera.
+    if cliente is None:
+        clave = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        cliente = anthropic.Anthropic(api_key=clave) if clave else anthropic.Anthropic()
 
     cuerpo = "\n\n".join(_formatear_commit(commit, i) for i, commit in enumerate(commits, start=1))
     mensaje_usuario = (

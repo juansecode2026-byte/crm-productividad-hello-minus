@@ -28,26 +28,6 @@ jobs:
       - run: pip install -r requirements.txt
         working-directory: backend/agent
 
-      # DIAGNÓSTICO TEMPORAL (2026-09-26) — httpx2 solo funciona perfecto en
-      # este mismo runner (paso anterior). El cliente anthropic.Anthropic()
-      # sigue fallando pese a usar el mismo httpx2 por debajo: el problema
-      # está en cómo el SDK arma el cliente, no en la red ni en httpx2.
-      # Traceback completo en vez del "Connection error" que cliente.py envuelve.
-      - run: |
-          python -c "
-          import traceback, os
-          try:
-              import anthropic
-              cliente = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
-              r = cliente.messages.create(model='claude-opus-5', max_tokens=10, messages=[{'role':'user','content':'di hola'}])
-              print('OK:', r.content)
-          except Exception:
-              traceback.print_exc()
-          "
-        working-directory: backend/agent
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
       - run: python -m clasificador_commits.ejecutar
         working-directory: backend/agent
         env:

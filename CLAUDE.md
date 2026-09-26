@@ -605,6 +605,23 @@ desviación del molde de `estructura.yaml`).
   exitosas por horario el 19 y el 22 de septiembre). `calcular-indicadores.yml`
   reusa el mismo `DATABASE_URL`, sin nada más que configurar.
 
+  **Dejó de correr entre el 22 y el 26 de septiembre** — todas las corridas
+  fallaban con "Connection error" al primer intento, sin llegar a la red.
+  Cuatro hipótesis descartadas con evidencia antes de encontrar la real
+  (IPv6 roto en los runners `ubuntu-latest`, la versión 1.8.0 del SDK de
+  Anthropic, la versión de `httpx2`/`httpcore2`): un traceback completo
+  reveló `httpcore2.LocalProtocolError: Illegal header value b'***\n'` — el
+  secreto `ANTHROPIC_API_KEY` en GitHub tenía un salto de línea de más al
+  final. Un valor de cabecera HTTP no puede tener `\n` crudo (protección
+  contra inyección de cabeceras); `httpx2` lo rechaza antes de intentar la
+  conexión, así que nunca llegaba a tocar la red — de ahí que se viera
+  idéntico a un problema de conectividad. `cliente.py` ahora hace
+  `.strip()` sobre la clave antes de construir el cliente, para que un
+  secreto mal pegado (acá o en cualquier otro lado) no vuelva a tumbar la
+  corrida entera. La reconfiguración del secreto en sí la hizo el usuario
+  directo en GitHub — nunca pasa por Claude Code ni por una terminal que
+  este agente ejecute.
+
 ### Sugeridor de etapa (`backend/agent/sugeridor_etapa/`)
 
 Segundo agente con LLM, y el primero que **no** corre por horario: lo dispara
